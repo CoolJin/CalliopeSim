@@ -32,11 +32,11 @@ export class CalliopeInterpreter {
   public async init() {
     await Parser.init({
       locateFile(scriptName: string, scriptDirectory: string) {
-        return scriptName;
+        return import.meta.env.BASE_URL + scriptName;
       },
     });
     this.parser = new Parser();
-    const cppLang = await Parser.Language.load('/tree-sitter-cpp.wasm');
+    const cppLang = await Parser.Language.load(import.meta.env.BASE_URL + 'tree-sitter-cpp.wasm');
     this.parser.setLanguage(cppLang);
   }
 

@@ -371,7 +371,7 @@ function App() {
 
           <div className="calliope-board-wrapper">
             <div className="calliope-board">
-              <img src="/calliope_clean.png" alt="Calliope Board" className="calliope-bg" onError={(e) => e.currentTarget.style.display = 'none'} />
+              <img src={`${import.meta.env.BASE_URL}calliope_clean.png`} alt="Calliope Board" className="calliope-bg" onError={(e) => e.currentTarget.style.display = 'none'} />
 
               {/* 5x5 LED Matrix */}
               <div className="led-matrix absolute-matrix">

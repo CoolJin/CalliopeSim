@@ -97,7 +97,7 @@ CRITICAL FORMATTING & BEHAVIOR RULES:
       }
     }
     
-    throw new Error("Fehler: Alle API-Keys sind erschöpft.");
+    throw new Error("Der KI-Assistent ist momentan leider nicht erreichbar. Bitte versuche es später erneut.");
   }
 }
 

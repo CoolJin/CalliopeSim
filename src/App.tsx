@@ -81,10 +81,16 @@ function App() {
   const [isTyping, setIsTyping] = useState(false);
 
   // References
+  const chatMessagesEndRef = useRef<HTMLDivElement>(null);
   const btnARef = useRef(btnA);
   const btnBRef = useRef(btnB);
   useEffect(() => { btnARef.current = btnA; }, [btnA]);
   useEffect(() => { btnBRef.current = btnB; }, [btnB]);
+
+  // Auto-scroll chat to bottom
+  useEffect(() => {
+    chatMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatHistory, isTyping]);
 
   const interpreterRef = useRef<CalliopeInterpreter | null>(null);
   const cmRef = useRef<ReactCodeMirrorRef>(null);
@@ -344,6 +350,7 @@ function App() {
             {isTyping && (
               <div style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '13px' }}>KI tippt...</div>
             )}
+            <div ref={chatMessagesEndRef} />
           </div>
           <div className="chat-input" style={{ display: 'flex', marginTop: '16px', gap: '8px' }}>
             <input 

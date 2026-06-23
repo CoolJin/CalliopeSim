@@ -364,6 +364,11 @@ export class CalliopeInterpreter {
     }
     if (node.type === 'true') return true;
     if (node.type === 'false') return false;
+    
+    if (node.type === 'parenthesized_expression') {
+      return this.evaluateExpression(node.namedChildren[0]);
+    }
+    
     if (node.type === 'identifier') {
       if (this.variables[node.text] !== undefined) {
         return this.variables[node.text];
@@ -398,6 +403,7 @@ export class CalliopeInterpreter {
         case '-': return left - right;
         case '*': return left * right;
         case '/': return left / right;
+        case '%': return left % right;
       }
     }
 

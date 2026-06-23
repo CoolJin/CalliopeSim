@@ -17,6 +17,7 @@ type LogMessage = {
   type: 'info' | 'error' | 'success';
 };
 
+type ChatMessage = {
   role: 'user' | 'model';
   text: string;
 };
@@ -290,7 +291,8 @@ function App() {
               highlightActiveLine: true
             }}
           />
-        </div        <div className="floating-panel console-panel">
+        </div>
+        <div className="floating-panel console-panel">
           <div className="console-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
             <span style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Konsolenausgabe</span>
             <div style={{ display: 'flex', gap: '8px' }}>
@@ -323,7 +325,7 @@ function App() {
                 <Copy size={14} /> Kopieren
               </button>
             </div>
-          </div>v>
+          </div>
           <div className="console-messages">
             {logs.map((log) => (
               <div key={log.id} className={`${log.type}`}>

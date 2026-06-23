@@ -119,22 +119,10 @@ export class CalliopeInterpreter {
       const funcName = node.childForFieldName('function')?.text;
       
       if (funcName) {
-        const allowed = [
-          '_uBit.display.scroll',
-          '_uBit.display.print',
-          '_uBit.display.clear',
-          '_uBit.display.setPixelValue',
-          '_uBit.rgb.setColour',
-          '_uBit.rgb.off',
-          '_uBit.buttonA.isPressed',
-          '_uBit.buttonB.isPressed',
-          'release_fiber',
-          '_uBit.init',
-          '_uBit.sleep',
-          'MicroBitColor'
-        ];
-        
-        const isAllowed = allowed.some(name => funcName === name || funcName.startsWith(name));
+        const isAllowed = funcName.startsWith('_uBit.') || 
+                          funcName === 'release_fiber' || 
+                          funcName.startsWith('MicroBitColor');
+                          
         if (!isAllowed) {
           errors.push(`Validierungsfehler: Unbekannte Funktion oder Tippfehler '${funcName}' in Zeile ${node.startPosition.row + 1}`);
         }
@@ -272,7 +260,7 @@ export class CalliopeInterpreter {
       else if (funcName?.startsWith('_uBit.display.clear')) {
         this.api.setState({ ledMatrix: Array(5).fill(Array(5).fill(0)) });
       }
-      else if (funcName?.startsWith('_uBit.display.setPixelValue')) {
+      else if (funcName?.includes('setPixelValue') || funcName?.includes('setPixel') || funcName?.includes('setLED')) {
         const x = Number(args[0]) || 0;
         const y = Number(args[1]) || 0;
         const value = Number(args[2]) || 0;
@@ -284,10 +272,16 @@ export class CalliopeInterpreter {
           this.api.setState({ ledMatrix: matrix });
         }
       }
+      else if (funcName?.includes('getPixelValue') || funcName?.includes('getPixel')) {
+        const x = Number(args[0]) || 0;
+        const y = Number(args[1]) || 0;
+        if (x >= 0 && x < 5 && y >= 0 && y < 5) {
+          const currentState = this.api.getState();
+          return currentState.ledMatrix[y][x];
+        }
+        return 0;
+      }
       else if (funcName?.startsWith('_uBit.rgb.setColour')) {
-        // e.g. MicroBitColor(255, 0, 0, 255) -> parsed via evaluateExpression if it's a nested call, or we just extract text.
-        // Actually Open Roberta might do _uBit.rgb.setColour(MicroBitColor(255, 0, 0, 255));
-        // We will intercept this specifically.
         if (argumentsNode && argumentsNode.text.includes('MicroBitColor')) {
           const colorArgsMatch = argumentsNode.text.match(/MicroBitColor\((.*?)\)/);
           if (colorArgsMatch) {
@@ -304,6 +298,15 @@ export class CalliopeInterpreter {
       }
       else if (funcName === '_uBit.sleep') {
         await this.api.sleep(args[0] || 100);
+      }
+      else if (funcName?.startsWith('_uBit.')) {
+        // Fallback for all other valid _uBit functions (sensors, sound, etc)
+        // We simply return 0 so the script doesn't crash when it checks sensors.
+        return 0;
+      }
+      else if (funcName?.startsWith('MicroBitColor')) {
+        // Constructor mock
+        return 0;
       }
       else {
         throw new Error(`Unknown function or typo: ${funcName}`);

@@ -234,6 +234,8 @@ function App() {
         errorMsg = "Zu viele Anfragen auf einmal. Bitte warte einen Moment, bevor du eine neue Frage stellst.";
       } else if (errorMsg.includes("fetch") || errorMsg.includes("network")) {
         errorMsg = "Netzwerkfehler. Bitte überprüfe deine Internetverbindung.";
+      } else {
+        errorMsg = "Ein unbekannter Fehler ist bei der Anfrage aufgetreten. Bitte versuche es noch einmal.";
       }
       setChatHistory(prev => [...prev, { role: 'model', text: 'Fehler: ' + errorMsg }]);
     } finally {

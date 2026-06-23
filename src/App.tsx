@@ -82,6 +82,16 @@ function App() {
   const [chatInput, setChatInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [activePulseId, setActivePulseId] = useState<number | null>(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  // Check for mobile layout
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // References
   const chatMessagesEndRef = useRef<HTMLDivElement>(null);
@@ -253,6 +263,29 @@ function App() {
       setIsTyping(false);
     }
   };
+
+  if (isMobile) {
+    return (
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        width: '100vw',
+        background: '#0f172a',
+        color: 'white',
+        textAlign: 'center',
+        padding: '24px'
+      }}>
+        <AlertCircle size={48} color="#ef4444" style={{ marginBottom: '24px' }} />
+        <h2 style={{ fontSize: '24px', marginBottom: '16px', color: '#f8fafc' }}>Nicht unterstützt</h2>
+        <p style={{ fontSize: '16px', color: '#cbd5e1', maxWidth: '400px', lineHeight: '1.6' }}>
+          Diese Simulation ist sehr komplex und kann leider <b>nur auf Desktop-Geräten</b> (PC, Laptop, großes Tablet) verwendet werden. Bitte öffne diese Seite an einem Computer.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="app-container floating-layout">

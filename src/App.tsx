@@ -227,7 +227,15 @@ function App() {
 
       setChatHistory(prev => [...prev, { role: 'model', text: response }]);
     } catch (e: any) {
-      setChatHistory(prev => [...prev, { role: 'model', text: 'Fehler: ' + e.message }]);
+      let errorMsg = e.message || String(e);
+      if (errorMsg.includes("503") || errorMsg.includes("high demand") || errorMsg.includes("overloaded")) {
+        errorMsg = "Die Server der KI sind gerade stark ausgelastet. Bitte versuche es in ein paar Sekunden nochmal.";
+      } else if (errorMsg.includes("429") || errorMsg.includes("quota") || errorMsg.includes("rate limit")) {
+        errorMsg = "Zu viele Anfragen auf einmal. Bitte warte einen Moment, bevor du eine neue Frage stellst.";
+      } else if (errorMsg.includes("fetch") || errorMsg.includes("network")) {
+        errorMsg = "Netzwerkfehler. Bitte überprüfe deine Internetverbindung.";
+      }
+      setChatHistory(prev => [...prev, { role: 'model', text: 'Fehler: ' + errorMsg }]);
     } finally {
       setIsTyping(false);
     }
@@ -428,7 +436,22 @@ function App() {
               </div>
             ))}
             {isTyping && (
-              <div style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '13px' }}>KI tippt...</div>
+              <div style={{ 
+                marginBottom: '12px', 
+                padding: '10px 14px', 
+                borderRadius: '12px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.05)',
+                alignSelf: 'flex-start',
+                width: 'fit-content'
+              }}>
+                <strong style={{ display: 'block', marginBottom: '4px', color: '#38bdf8', fontSize: '12px' }}>
+                  KI Assistent
+                </strong>
+                <div className="typing-dots" style={{ padding: '4px 0' }}>
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
             )}
             <div ref={chatMessagesEndRef} />
           </div>

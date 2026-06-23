@@ -87,8 +87,12 @@ function App() {
   const chatMessagesEndRef = useRef<HTMLDivElement>(null);
   const btnARef = useRef(btnA);
   const btnBRef = useRef(btnB);
+  const logsRef = useRef(logs);
+  const chatHistoryRef = useRef(chatHistory);
   useEffect(() => { btnARef.current = btnA; }, [btnA]);
   useEffect(() => { btnBRef.current = btnB; }, [btnB]);
+  useEffect(() => { logsRef.current = logs; }, [logs]);
+  useEffect(() => { chatHistoryRef.current = chatHistory; }, [chatHistory]);
 
   // Auto-scroll chat to bottom
   useEffect(() => {
@@ -127,8 +131,8 @@ function App() {
     const prompt = "Der Nutzer hat die Simulation mit seinem Code gestartet, was sollte er verbessern, wenn es was zu verbessern gibt? (WICHTIG: Wenn der Code perfekt ist und es absolut nichts zu verbessern oder anzumerken gibt, antworte EXAKT mit dem Wort 'NO_FEEDBACK' und sonst nichts.)";
     
     try {
-      const consoleOutput = logs.map(l => l.text).join('\n');
-      let response = await geminiService.sendMessage(prompt, chatHistory, code, consoleOutput);
+      const consoleOutput = logsRef.current.map(l => l.text).join('\n');
+      let response = await geminiService.sendMessage(prompt, chatHistoryRef.current, code, consoleOutput);
       
       if (response.trim() !== 'NO_FEEDBACK') {
         const view = cmRef.current?.view;

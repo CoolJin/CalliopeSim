@@ -97,6 +97,7 @@ function App() {
   const btnBRef = useRef(btnB);
   const logsRef = useRef(logs);
   const chatHistoryRef = useRef(chatHistory);
+  const postRunPromptTimerRef = useRef<number | null>(null);
   useEffect(() => { btnARef.current = btnA; }, [btnA]);
   useEffect(() => { btnBRef.current = btnB; }, [btnB]);
   useEffect(() => { logsRef.current = logs; }, [logs]);
@@ -141,6 +142,11 @@ function App() {
     setIsRunning(true);
     setShowPostRunPrompt(false);
     
+    if (postRunPromptTimerRef.current) clearTimeout(postRunPromptTimerRef.current);
+    postRunPromptTimerRef.current = window.setTimeout(() => {
+      setShowPostRunPrompt(true);
+    }, 2000);
+    
     // Clear line highlights when executing
     const view = cmRef.current?.view;
     if (view) {
@@ -149,7 +155,6 @@ function App() {
 
     await interpreterRef.current.execute(code);
     setIsRunning(false);
-    setShowPostRunPrompt(true);
   };
 
   const handleStop = () => {
@@ -174,6 +179,7 @@ function App() {
     if (!userMsg.trim() || isTyping) return;
     
     if (!presetMsg) setChatInput('');
+    if (postRunPromptTimerRef.current) clearTimeout(postRunPromptTimerRef.current);
     setShowPostRunPrompt(false);
     setChatHistory(prev => [...prev, { role: 'user', text: userMsg }]);
     setIsTyping(true);
@@ -281,6 +287,7 @@ function App() {
             readOnly={isTyping}
             onChange={(value) => {
               setCode(value);
+              if (postRunPromptTimerRef.current) clearTimeout(postRunPromptTimerRef.current);
               setShowPostRunPrompt(false);
               handleStop();
             }}
@@ -433,27 +440,31 @@ function App() {
 
       <div className="right-panel">
         <div className="floating-panel simulator-panel">
-          <div className="control-panel" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {!isRunning ? (
-              <button className="btn btn-primary" onClick={handleRun} disabled={isTyping} title={isTyping ? "Warte auf KI..." : ""}><Play size={16} /> Code ausführen</button>
-            ) : (
-              <button className="btn btn-danger" onClick={handleStop}><Square size={16} /> Ausführung stoppen</button>
-            )}
+          <div className="control-panel" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', minHeight: '36px' }}>
+            <div className="left-controls" style={{ display: 'flex', alignItems: 'center' }}>
+              {showPostRunPrompt && !isTyping && (
+                <div className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#cbd5e1' }}>
+                  <HelpCircle size={14} color="#818cf8" />
+                  Funktioniert etwas nicht? 
+                  <button 
+                    onClick={() => handleSendChat("Warum funktioniert mein Code nicht?")}
+                    style={{ background: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.3)', color: '#818cf8', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', transition: 'all 0.2s' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.2)'; e.currentTarget.style.color = '#c7d2fe'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.1)'; e.currentTarget.style.color = '#818cf8'; }}
+                  >
+                    <Bug size={12} /> KI fragen
+                  </button>
+                </div>
+              )}
+            </div>
             
-            {showPostRunPrompt && !isRunning && !isTyping && (
-              <div className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#cbd5e1' }}>
-                <HelpCircle size={14} color="#818cf8" />
-                Funktioniert etwas nicht? 
-                <button 
-                  onClick={() => handleSendChat("Warum funktioniert mein Code nicht?")}
-                  style={{ background: 'transparent', border: '1px solid #818cf8', color: '#818cf8', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', transition: 'all 0.2s' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#818cf8'; e.currentTarget.style.color = '#fff'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#818cf8'; }}
-                >
-                  KI fragen
-                </button>
-              </div>
-            )}
+            <div className="right-controls">
+              {!isRunning ? (
+                <button className="btn btn-primary" onClick={handleRun} disabled={isTyping} title={isTyping ? "Warte auf KI..." : ""}><Play size={16} /> Code ausführen</button>
+              ) : (
+                <button className="btn btn-danger" onClick={handleStop}><Square size={16} /> Ausführung stoppen</button>
+              )}
+            </div>
           </div>
 
           <div className="calliope-board-wrapper">

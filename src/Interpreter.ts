@@ -123,6 +123,7 @@ export class CalliopeInterpreter {
           '_uBit.display.scroll',
           '_uBit.display.print',
           '_uBit.display.clear',
+          '_uBit.display.setPixelValue',
           '_uBit.rgb.setColour',
           '_uBit.rgb.off',
           '_uBit.buttonA.isPressed',
@@ -270,6 +271,18 @@ export class CalliopeInterpreter {
       }
       else if (funcName?.startsWith('_uBit.display.clear')) {
         this.api.setState({ ledMatrix: Array(5).fill(Array(5).fill(0)) });
+      }
+      else if (funcName?.startsWith('_uBit.display.setPixelValue')) {
+        const x = Number(args[0]) || 0;
+        const y = Number(args[1]) || 0;
+        const value = Number(args[2]) || 0;
+        
+        if (x >= 0 && x < 5 && y >= 0 && y < 5) {
+          const currentState = this.api.getState();
+          const matrix = currentState.ledMatrix.map(row => [...row]);
+          matrix[y][x] = value > 255 ? 255 : (value < 0 ? 0 : value);
+          this.api.setState({ ledMatrix: matrix });
+        }
       }
       else if (funcName?.startsWith('_uBit.rgb.setColour')) {
         // e.g. MicroBitColor(255, 0, 0, 255) -> parsed via evaluateExpression if it's a nested call, or we just extract text.

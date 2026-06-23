@@ -300,8 +300,8 @@ export class CalliopeInterpreter {
         this.api.setState({ ledMatrix: Array(5).fill(Array(5).fill(0)) });
       }
       else if (funcName?.includes('setPixelValue') || funcName?.includes('setPixel') || funcName?.includes('setLED')) {
-        const x = Number(args[0]) || 0;
-        const y = Number(args[1]) || 0;
+        const x = Math.trunc(Number(args[0]) || 0);
+        const y = Math.trunc(Number(args[1]) || 0);
         const value = Number(args[2]) || 0;
         
         if (x >= 0 && x < 5 && y >= 0 && y < 5) {
@@ -312,8 +312,8 @@ export class CalliopeInterpreter {
         }
       }
       else if (funcName?.includes('getPixelValue') || funcName?.includes('getPixel')) {
-        const x = Number(args[0]) || 0;
-        const y = Number(args[1]) || 0;
+        const x = Math.trunc(Number(args[0]) || 0);
+        const y = Math.trunc(Number(args[1]) || 0);
         if (x >= 0 && x < 5 && y >= 0 && y < 5) {
           const currentState = this.api.getState();
           return currentState.ledMatrix[y][x];
@@ -402,7 +402,12 @@ export class CalliopeInterpreter {
         case '+': return left + right;
         case '-': return left - right;
         case '*': return left * right;
-        case '/': return left / right;
+        case '/': 
+          // C++ integer division emulation
+          if (Number.isInteger(left) && Number.isInteger(right)) {
+            return Math.trunc(left / right);
+          }
+          return left / right;
         case '%': return left % right;
       }
     }

@@ -18,8 +18,10 @@ type LogMessage = {
 };
 
 type ChatMessage = {
+  id?: number;
   role: 'user' | 'model';
   text: string;
+  isAutomatedFeedback?: boolean;
 };
 
 // CodeMirror Highlight Logic
@@ -79,6 +81,7 @@ function App() {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [activePulseId, setActivePulseId] = useState<number | null>(null);
 
   // References
   const chatMessagesEndRef = useRef<HTMLDivElement>(null);
@@ -120,10 +123,51 @@ function App() {
     interpreterRef.current = interpreter;
   }, []);
 
+  const triggerAutomatedFeedback = async () => {
+    const prompt = "Der Nutzer hat die Simulation mit seinem Code gestartet, was sollte er verbessern, wenn es was zu verbessern gibt? (WICHTIG: Wenn der Code perfekt ist und es absolut nichts zu verbessern oder anzumerken gibt, antworte EXAKT mit dem Wort 'NO_FEEDBACK' und sonst nichts.)";
+    
+    try {
+      const consoleOutput = logs.map(l => l.text).join('\n');
+      let response = await geminiService.sendMessage(prompt, chatHistory, code, consoleOutput);
+      
+      if (response.trim() !== 'NO_FEEDBACK') {
+        const view = cmRef.current?.view;
+        if (view) {
+          let linesToMark: number[] = [];
+          const regex = /<mark_line>(\d+)<\/mark_line>/g;
+          response = response.replace(regex, (_match, lineNumStr) => {
+            const lineNum = parseInt(lineNumStr);
+            if (!isNaN(lineNum) && lineNum >= 1 && lineNum <= view.state.doc.lines) {
+              linesToMark.push(lineNum);
+            }
+            return lineNumStr;
+          });
+
+          if (linesToMark.length > 0) {
+            const decos = linesToMark.map(ln => view.state.doc.line(ln).from);
+            if (decos.length > 0) {
+              view.dispatch({
+                effects: setLineHighlights.of(decos),
+                scrollIntoView: true
+              });
+            }
+          }
+        }
+
+        const newMsgId = Date.now();
+        setChatHistory(prev => [...prev, { id: newMsgId, role: 'model', text: response, isAutomatedFeedback: true }]);
+        setActivePulseId(newMsgId);
+      }
+    } catch (e) {
+      // Ignoriere Fehler bei Hintergrundanfragen
+    }
+  };
+
   const handleRun = async () => {
     if (!interpreterRef.current) return;
     setLogs([]); // clear logs
     setIsRunning(true);
+    setActivePulseId(null);
     
     // Clear line highlights when executing
     const view = cmRef.current?.view;
@@ -131,13 +175,11 @@ function App() {
       view.dispatch({ effects: clearLineHighlights.of() });
     }
 
-    const success = await interpreterRef.current.execute(code);
+    await interpreterRef.current.execute(code);
     setIsRunning(false);
 
-    if (!success) {
-      // Auto-send chat message if execution failed due to an error
-      handleSendChat("Warum funktioniert mein Code nicht?");
-    }
+    // Automatisiertes Feedback triggern (ohne isTyping zu setzen, damit Editor nicht gesperrt wird)
+    triggerAutomatedFeedback();
   };
 
   const handleStop = () => {
@@ -162,7 +204,8 @@ function App() {
     if (!userMsg.trim() || isTyping) return;
     
     if (!presetMsg) setChatInput('');
-    setChatHistory(prev => [...prev, { role: 'user', text: userMsg }]);
+    setActivePulseId(null);
+    setChatHistory(prev => [...prev, { id: Date.now(), role: 'user', text: userMsg }]);
     setIsTyping(true);
 
     const view = cmRef.current?.view;
@@ -199,9 +242,9 @@ function App() {
         }
       }
 
-      setChatHistory(prev => [...prev, { role: 'model', text: response }]);
+      setChatHistory(prev => [...prev, { id: Date.now(), role: 'model', text: response }]);
     } catch (e: any) {
-      setChatHistory(prev => [...prev, { role: 'model', text: 'Fehler: ' + e.message }]);
+      setChatHistory(prev => [...prev, { id: Date.now(), role: 'model', text: 'Fehler: ' + e.message }]);
     } finally {
       setIsTyping(false);
     }
@@ -232,6 +275,7 @@ function App() {
             readOnly={isTyping}
             onChange={(value) => {
               setCode(value);
+              setActivePulseId(null);
               handleStop();
             }}
             className={`cm-editor-wrapper ${isTyping ? 'disabled' : ''}`}
@@ -331,7 +375,7 @@ function App() {
             )}
 
             {chatHistory.map((msg, idx) => (
-              <div key={idx} style={{ 
+              <div key={msg.id || idx} className={msg.id === activePulseId ? 'automated-feedback-pulse' : ''} style={{ 
                 marginBottom: '12px', 
                 padding: '10px 14px', 
                 borderRadius: '12px',
@@ -340,10 +384,11 @@ function App() {
                 color: msg.role === 'user' ? '#e0e7ff' : '#cbd5e1',
                 alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
                 whiteSpace: 'pre-wrap',
-                fontFamily: msg.role === 'model' ? 'Inter, sans-serif' : 'inherit'
+                fontFamily: msg.role === 'model' ? 'Inter, sans-serif' : 'inherit',
+                transition: 'all 0.3s'
               }}>
-                <strong style={{ display: 'block', marginBottom: '4px', color: msg.role === 'user' ? '#818cf8' : '#38bdf8', fontSize: '12px' }}>
-                  {msg.role === 'user' ? 'Du' : 'KI Assistent'}
+                <strong style={{ display: 'block', marginBottom: '4px', color: msg.role === 'user' ? '#818cf8' : (msg.isAutomatedFeedback ? '#ef4444' : '#38bdf8'), fontSize: '12px' }}>
+                  {msg.role === 'user' ? 'Du' : (msg.isAutomatedFeedback ? 'KI Assistent (Tipp)' : 'KI Assistent')}
                 </strong>
                 {msg.text}
               </div>

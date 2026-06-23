@@ -451,16 +451,16 @@ function App() {
           <div className="control-panel" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', minHeight: '36px' }}>
             <div className="left-controls" style={{ display: 'flex', alignItems: 'center' }}>
               {showPostRunPrompt && !isTyping && (
-                <div className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#cbd5e1' }}>
-                  <HelpCircle size={14} color="#818cf8" />
+                <div className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px', color: '#cbd5e1' }}>
+                  <HelpCircle size={16} color="#818cf8" />
                   Funktioniert etwas nicht? 
                   <button 
                     onClick={() => handleSendChat("Warum funktioniert mein Code nicht?")}
-                    style={{ background: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.3)', color: '#818cf8', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '4px', transition: 'all 0.2s' }}
+                    style={{ background: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.3)', color: '#818cf8', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s' }}
                     onMouseEnter={e => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.2)'; e.currentTarget.style.color = '#c7d2fe'; }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.1)'; e.currentTarget.style.color = '#818cf8'; }}
                   >
-                    <Bug size={12} /> KI fragen
+                    <Bug size={14} /> KI fragen
                   </button>
                 </div>
               )}

@@ -365,6 +365,14 @@ body {
   box-shadow: 0 6px 20px rgba(220, 38, 38, 0.5);
 }
 
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(80%);
+  transform: none;
+  box-shadow: none;
+}
+
 .btn-copy {
   background: rgba(255,255,255,0.05);
   color: #94a3b8;

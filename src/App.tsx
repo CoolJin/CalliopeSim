@@ -367,11 +367,13 @@ function App() {
 
       <div className="middle-panel">
         <div className="floating-panel ai-chat-panel" style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column' }}>
-          <h3 style={{ fontSize: '16px', color: '#6366F1', margin: 0, textShadow: '0 0 10px rgba(99, 102, 241, 0.3)', marginBottom: '16px' }}>KI Hilfe</h3>
+          <h3 style={{ fontSize: '16px', color: '#6366F1', margin: 0, textShadow: '0 0 10px rgba(99, 102, 241, 0.3)', marginBottom: '16px' }}>KI-Assistent</h3>
           <div className="chat-messages" style={{ flex: 1, background: 'rgba(0,0,0,0.2)', borderRadius: '12px', padding: '16px', overflowY: 'auto', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <div className="info" style={{ marginBottom: '16px', lineHeight: '1.5' }}>
-              Hallo! Wie kann ich dir heute beim Programmieren helfen? Ich sehe deinen C++ Code und deine Fehler automatisch.
-            </div>
+            {chatHistory.length === 0 && (
+              <div className="info" style={{ marginBottom: '16px', lineHeight: '1.5' }}>
+                Hallo! Wie kann ich dir heute beim Programmieren helfen? Ich sehe deinen C++ Code und deine Fehler automatisch.
+              </div>
+            )}
             
             {chatHistory.length === 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px' }}>
@@ -392,12 +394,12 @@ function App() {
                   <BookOpen size={16} color="#34d399" /> Was sind die wichtigsten Befehle?
                 </button>
                 <button 
-                  onClick={() => handleSendChat("Erkläre mir den aktuellen Code.")}
+                  onClick={() => handleSendChat("Gebe mir eine Programmieraufgabe.")}
                   style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '13px', transition: 'background 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}
                   onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
                   onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
                 >
-                  <Info size={16} color="#60a5fa" /> Erkläre mir den aktuellen Code.
+                  <Info size={16} color="#60a5fa" /> Gebe mir eine Programmieraufgabe.
                 </button>
                 <button 
                   onClick={() => handleSendChat("Warum funktioniert mein Code nicht?")}

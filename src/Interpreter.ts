@@ -119,12 +119,51 @@ export class CalliopeInterpreter {
       const funcName = node.childForFieldName('function')?.text;
       
       if (funcName) {
-        const isAllowed = funcName.startsWith('_uBit.') || 
-                          funcName === 'release_fiber' || 
-                          funcName.startsWith('MicroBitColor');
+        const knownUnsupportedPrefixes = [
+          '_uBit.accelerometer.',
+          '_uBit.compass.',
+          '_uBit.thermometer.',
+          '_uBit.io.',
+          '_uBit.soundmotor.',
+          '_uBit.serial.',
+          '_uBit.radio.',
+          '_uBit.i2c.',
+          '_uBit.spi.',
+          '_uBit.messageBus.',
+          '_uBit.storage.',
+          '_uBit.systemTime',
+          '_uBit.random'
+        ];
+        
+        const knownSupported = [
+          '_uBit.display.scroll',
+          '_uBit.display.print',
+          '_uBit.display.clear',
+          '_uBit.rgb.setColour',
+          '_uBit.rgb.off',
+          '_uBit.buttonA.isPressed',
+          '_uBit.buttonB.isPressed',
+          '_uBit.buttonAB.isPressed',
+          'release_fiber',
+          '_uBit.init',
+          '_uBit.sleep',
+          'MicroBitColor'
+        ];
+        
+        const isSupported = knownSupported.some(name => funcName === name || funcName.startsWith(name)) ||
+                            funcName.includes('setPixelValue') || funcName.includes('setPixel') || funcName.includes('setLED') ||
+                            funcName.includes('getPixelValue') || funcName.includes('getPixel');
                           
-        if (!isAllowed) {
-          errors.push(`Validierungsfehler: Unbekannte Funktion oder Tippfehler '${funcName}' in Zeile ${node.startPosition.row + 1}`);
+        if (!isSupported) {
+          const isKnownUnsupported = knownUnsupportedPrefixes.some(prefix => funcName.startsWith(prefix)) || 
+                                     funcName.startsWith('_uBit.display.') || 
+                                     funcName.startsWith('_uBit.button') ||
+                                     funcName.startsWith('_uBit.rgb.');
+          if (isKnownUnsupported) {
+            errors.push(`Nicht unterstützt: Die Funktion '${funcName}' existiert auf dem echten Calliope, wird aber im Simulator aktuell nicht unterstützt (Zeile ${node.startPosition.row + 1}).`);
+          } else {
+            errors.push(`Validierungsfehler: Unbekannte Funktion oder Tippfehler '${funcName}' in Zeile ${node.startPosition.row + 1}`);
+          }
         }
       }
     }
@@ -299,17 +338,12 @@ export class CalliopeInterpreter {
       else if (funcName === '_uBit.sleep') {
         await this.api.sleep(args[0] || 100);
       }
-      else if (funcName?.startsWith('_uBit.')) {
-        // Fallback for all other valid _uBit functions (sensors, sound, etc)
-        // We simply return 0 so the script doesn't crash when it checks sensors.
-        return 0;
-      }
       else if (funcName?.startsWith('MicroBitColor')) {
         // Constructor mock
         return 0;
       }
       else {
-        throw new Error(`Unknown function or typo: ${funcName}`);
+        throw new Error(`Unerwartete Funktion während der Ausführung: ${funcName}`);
       }
       
       return;

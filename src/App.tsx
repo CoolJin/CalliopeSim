@@ -281,7 +281,7 @@ function App() {
         <AlertCircle size={48} color="#ef4444" style={{ marginBottom: '24px' }} />
         <h2 style={{ fontSize: '24px', marginBottom: '16px', color: '#f8fafc' }}>Nicht unterstützt</h2>
         <p style={{ fontSize: '16px', color: '#cbd5e1', maxWidth: '400px', lineHeight: '1.6' }}>
-          Diese Simulation ist sehr komplex und kann leider <b>nur auf Desktop-Geräten</b> (PC, Laptop, großes Tablet) verwendet werden. Bitte öffne diese Seite an einem Computer.
+          Diese Seite kann leider nur auf Desktop-Geräten (PC, Laptop) verwendet werden.
         </p>
       </div>
     );

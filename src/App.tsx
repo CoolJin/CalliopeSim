@@ -80,6 +80,7 @@ function App() {
   const [chatInput, setChatInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showPostRunPrompt, setShowPostRunPrompt] = useState(false);
+  const [isConsoleButtonPulsing, setIsConsoleButtonPulsing] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   // Check for mobile layout
@@ -141,6 +142,7 @@ function App() {
     setLogs([]); // clear logs
     setIsRunning(true);
     setShowPostRunPrompt(false);
+    setIsConsoleButtonPulsing(false);
     
     if (postRunPromptTimerRef.current) clearTimeout(postRunPromptTimerRef.current);
     postRunPromptTimerRef.current = window.setTimeout(() => {
@@ -155,6 +157,10 @@ function App() {
 
     await interpreterRef.current.execute(code);
     setIsRunning(false);
+    
+    if (logsRef.current.some(l => l.type === 'error')) {
+      setIsConsoleButtonPulsing(true);
+    }
   };
 
   const handleStop = () => {
@@ -181,6 +187,7 @@ function App() {
     if (!presetMsg) setChatInput('');
     if (postRunPromptTimerRef.current) clearTimeout(postRunPromptTimerRef.current);
     setShowPostRunPrompt(false);
+    setIsConsoleButtonPulsing(false);
     setChatHistory(prev => [...prev, { role: 'user', text: userMsg }]);
     setIsTyping(true);
 
@@ -289,6 +296,7 @@ function App() {
               setCode(value);
               if (postRunPromptTimerRef.current) clearTimeout(postRunPromptTimerRef.current);
               setShowPostRunPrompt(false);
+              setIsConsoleButtonPulsing(false);
               handleStop();
             }}
             className={`cm-editor-wrapper ${isTyping ? 'disabled' : ''}`}
@@ -305,7 +313,7 @@ function App() {
             <div style={{ display: 'flex', gap: '8px' }}>
               {logs.some(l => l.type === 'error') && (
                 <button 
-                  className="btn btn-copy animate-fade-in" 
+                  className={`btn btn-copy animate-fade-in ${isConsoleButtonPulsing ? 'animate-error-pulse' : ''}`}
                   style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.1)' }}
                   onClick={() => handleSendChat("Warum funktioniert mein Code nicht?")}
                   title="KI nach Fehler fragen"

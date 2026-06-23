@@ -463,3 +463,13 @@ body {
 .animate-fade-in {
   animation: fade-in-up 0.3s ease-out forwards;
 }
+
+@keyframes error-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+  70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.animate-error-pulse {
+  animation: error-pulse 2s infinite !important;
+}

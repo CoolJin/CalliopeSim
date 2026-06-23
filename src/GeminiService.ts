@@ -58,10 +58,19 @@ CRITICAL FORMATTING & BEHAVIOR RULES:
               systemInstruction: systemInstruction
             });
 
-            const formattedHistory = history.map(msg => ({
-              role: msg.role === 'model' ? 'model' : 'user',
-              parts: [{ text: msg.text }]
-            }));
+            const formattedHistory: any[] = [];
+            let lastRole: string | null = null;
+            
+            for (const msg of history) {
+              const role = msg.role === 'model' ? 'model' : 'user';
+              if (role === 'model' && lastRole !== 'user') {
+                formattedHistory.push({ role: 'user', parts: [{ text: '[Automatischer System-Prompt zur Code-Überprüfung]' }] });
+              } else if (role === 'user' && lastRole === 'user') {
+                formattedHistory.push({ role: 'model', parts: [{ text: '[System: Nutzer hat eine weitere Frage gestellt]' }] });
+              }
+              formattedHistory.push({ role, parts: [{ text: msg.text }] });
+              lastRole = role;
+            }
 
             const chat = model.startChat({
               history: formattedHistory,

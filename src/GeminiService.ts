@@ -7,12 +7,6 @@ const API_KEYS = [
 ].filter(Boolean);
 
 class GeminiService {
-  private currentKeyIndex = 0;
-
-  private getClient() {
-    return new GoogleGenerativeAI(API_KEYS[this.currentKeyIndex]);
-  }
-
   public async sendMessage(userMessage: string, history: any[], currentCode: string, consoleOutput: string): Promise<string> {
     const numberedCode = currentCode.split('\n').map((line, idx) => `${idx + 1}: ${line}`).join('\n');
     
@@ -37,73 +31,63 @@ CRITICAL FORMATTING & BEHAVIOR RULES:
 3. Gib nicht einfach den fertigen Code vor, sondern hilf dem Schüler, selbst auf die Lösung zu kommen.
 4. HALLUZINIERE KEINE BEFEHLE! Du darfst auf keinen Fall falsche Befehle erfinden oder falsche Erklärungen abgeben. Nenne nur existierende, echte Befehle aus dem Open Roberta / Calliope Ökosystem und erkläre diese zu 100% korrekt.`;
 
-    const modelsToTry = [
-      "gemini-flash-latest",
-      "gemini-2.5-flash", 
-      "gemini-3.5-flash", 
-      "gemini-pro-latest",
-      "gemini-3-pro-preview"
+    // Modelle absteigend nach Qualität sortiert
+    const MODELS = [
+      "gemini-3.5-flash",
+      "gemini-3-flash",
+      "gemini-2.5-flash"
     ];
 
-    for (let attempts = 0; attempts < API_KEYS.length; attempts++) {
-      try {
-        const genAI = this.getClient();
-        
-        let lastError = null;
-        
-        for (const modelName of modelsToTry) {
-          try {
-            const model = genAI.getGenerativeModel({ 
-              model: modelName,
-              systemInstruction: systemInstruction
-            });
+    let lastError: any = null;
 
-            const formattedHistory: any[] = [];
-            let lastRole: string | null = null;
-            
-            for (const msg of history) {
-              const role = msg.role === 'model' ? 'model' : 'user';
-              if (role === 'model' && lastRole !== 'user') {
-                formattedHistory.push({ role: 'user', parts: [{ text: '[Automatischer System-Prompt zur Code-Überprüfung]' }] });
-              } else if (role === 'user' && lastRole === 'user') {
-                formattedHistory.push({ role: 'model', parts: [{ text: '[System: Nutzer hat eine weitere Frage gestellt]' }] });
-              }
-              formattedHistory.push({ role, parts: [{ text: msg.text }] });
-              lastRole = role;
+    // Wir probieren zuerst das beste Modell über alle API-Keys hinweg, 
+    // dann das zweitbeste über alle Keys, usw.
+    // Da wir bei jedem Aufruf von vorne anfangen, wird auch immer wieder geprüft,
+    // ob die besten Modelle (oder Keys) wieder verfügbar sind.
+    for (const modelName of MODELS) {
+      for (let keyIndex = 0; keyIndex < API_KEYS.length; keyIndex++) {
+        try {
+          const genAI = new GoogleGenerativeAI(API_KEYS[keyIndex]);
+          const model = genAI.getGenerativeModel({ 
+            model: modelName,
+            systemInstruction: systemInstruction
+          });
+
+          const formattedHistory: any[] = [];
+          let lastRole: string | null = null;
+          
+          for (const msg of history) {
+            const role = msg.role === 'model' ? 'model' : 'user';
+            if (role === 'model' && lastRole !== 'user') {
+              formattedHistory.push({ role: 'user', parts: [{ text: '[Automatischer System-Prompt zur Code-Überprüfung]' }] });
+            } else if (role === 'user' && lastRole === 'user') {
+              formattedHistory.push({ role: 'model', parts: [{ text: '[System: Nutzer hat eine weitere Frage gestellt]' }] });
             }
-
-            const chat = model.startChat({
-              history: formattedHistory,
-              generationConfig: { temperature: 0.7 }
-            });
-
-            const result = await chat.sendMessage(userMessage);
-            return result.response.text();
-          } catch (modelError: any) {
-             console.warn(`Model ${modelName} failed on key ${this.currentKeyIndex}:`, modelError.message);
-             lastError = modelError;
-             // If it's a 404 (model not found) or 400 (not supported), try next model
-             if (modelError.message?.includes("404") || modelError.message?.includes("not found")) {
-                 continue;
-             }
-             // Otherwise (e.g. quota 429), break inner loop to switch API key
-             break;
+            formattedHistory.push({ role, parts: [{ text: msg.text }] });
+            lastRole = role;
           }
-        }
-        
-        if (lastError) throw lastError;
 
-      } catch (error: any) {
-        console.error(`Gemini API Error with key index ${this.currentKeyIndex}:`, error);
-        
-        if (attempts < API_KEYS.length - 1) {
-          console.warn(`API Error or Quota exceeded. Switching from Key ${this.currentKeyIndex} to ${(this.currentKeyIndex + 1) % API_KEYS.length}...`);
-          this.currentKeyIndex = (this.currentKeyIndex + 1) % API_KEYS.length;
+          const chat = model.startChat({
+            history: formattedHistory,
+            generationConfig: { temperature: 0.7 }
+          });
+
+          const result = await chat.sendMessage(userMessage);
+          console.log(`Successfully used model ${modelName} with API Key ${keyIndex + 1}`);
+          return result.response.text();
+          
+        } catch (error: any) {
+          console.warn(`Model ${modelName} failed on API Key ${keyIndex + 1}:`, error.message || error);
+          lastError = error;
+          // Bei jedem Fehler (Rate Limit, Model Not Found, 503) probieren wir den nächsten Key oder das nächste Modell
           continue;
         }
-
-        throw new Error("Fehler bei der KI-Anfrage: " + error.message);
       }
+    }
+    
+    // Wenn alle 9 Kombinationen fehlgeschlagen sind
+    if (lastError) {
+      throw new Error("Fehler bei der KI-Anfrage: " + (lastError.message || String(lastError)));
     }
     
     throw new Error("Der KI-Assistent ist momentan leider nicht erreichbar. Bitte versuche es später erneut.");

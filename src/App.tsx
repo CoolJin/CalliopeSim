@@ -272,7 +272,7 @@ function App() {
               onMouseEnter={(e) => { if(!isTyping) { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.2)'; e.currentTarget.style.color = '#c7d2fe'; } }}
               onMouseLeave={(e) => { if(!isTyping) { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.1)'; e.currentTarget.style.color = '#818cf8'; } }}
             >
-              <Sparkles size={14} /> KI überprüfen
+              <Sparkles size={14} /> Verbesserungsvorschläge
             </button>
             <button 
               onClick={handleFormatCode}

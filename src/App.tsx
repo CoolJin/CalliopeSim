@@ -229,11 +229,12 @@ function App() {
             height="100%"
             theme="dark"
             extensions={[cpp(), highlightField]}
+            readOnly={isTyping}
             onChange={(value) => {
               setCode(value);
               handleStop();
             }}
-            className="cm-editor-wrapper"
+            className={`cm-editor-wrapper ${isTyping ? 'disabled' : ''}`}
             basicSetup={{
               lineNumbers: true,
               foldGutter: false,
@@ -370,7 +371,7 @@ function App() {
         <div className="floating-panel simulator-panel">
           <div className="control-panel">
             {!isRunning ? (
-              <button className="btn btn-primary" onClick={handleRun}><Play size={16} /> Code ausführen</button>
+              <button className="btn btn-primary" onClick={handleRun} disabled={isTyping} title={isTyping ? "Warte auf KI..." : ""}><Play size={16} /> Code ausführen</button>
             ) : (
               <button className="btn btn-danger" onClick={handleStop}><Square size={16} /> Ausführung stoppen</button>
             )}

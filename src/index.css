@@ -279,6 +279,11 @@ body {
   background: transparent !important;
 }
 
+.cm-editor-wrapper.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .console-panel {
   height: 250px;
   padding: 16px 20px;

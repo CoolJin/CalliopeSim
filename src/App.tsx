@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Play, Square, AlertCircle, Info, CheckCircle, Copy, AlignLeft } from 'lucide-react';
+import { Play, Square, AlertCircle, Info, CheckCircle, Copy, AlignLeft, Sparkles, Bug, Rocket, BookOpen, Wand2, HelpCircle } from 'lucide-react';
 import CodeMirror from '@uiw/react-codemirror';
 import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { cpp } from '@codemirror/lang-cpp';
@@ -17,11 +17,8 @@ type LogMessage = {
   type: 'info' | 'error' | 'success';
 };
 
-type ChatMessage = {
-  id?: number;
   role: 'user' | 'model';
   text: string;
-  isAutomatedFeedback?: boolean;
 };
 
 // CodeMirror Highlight Logic
@@ -81,7 +78,7 @@ function App() {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [activePulseId, setActivePulseId] = useState<number | null>(null);
+  const [showPostRunPrompt, setShowPostRunPrompt] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   // Check for mobile layout
@@ -137,51 +134,11 @@ function App() {
     interpreterRef.current = interpreter;
   }, []);
 
-  const triggerAutomatedFeedback = async () => {
-    const prompt = "Der Nutzer hat die Simulation mit seinem Code gestartet, was sollte er verbessern, wenn es was zu verbessern gibt? (WICHTIG: Wenn der Code perfekt ist und es absolut nichts zu verbessern oder anzumerken gibt, antworte EXAKT mit dem Wort 'NO_FEEDBACK' und sonst nichts.)";
-    
-    try {
-      const consoleOutput = logsRef.current.map(l => l.text).join('\n');
-      let response = await geminiService.sendMessage(prompt, chatHistoryRef.current, code, consoleOutput);
-      
-      if (response.trim() !== 'NO_FEEDBACK') {
-        const view = cmRef.current?.view;
-        if (view) {
-          let linesToMark: number[] = [];
-          const regex = /<mark_line>(\d+)<\/mark_line>/g;
-          response = response.replace(regex, (_match, lineNumStr) => {
-            const lineNum = parseInt(lineNumStr);
-            if (!isNaN(lineNum) && lineNum >= 1 && lineNum <= view.state.doc.lines) {
-              linesToMark.push(lineNum);
-            }
-            return lineNumStr;
-          });
-
-          if (linesToMark.length > 0) {
-            const decos = linesToMark.map(ln => view.state.doc.line(ln).from);
-            if (decos.length > 0) {
-              view.dispatch({
-                effects: setLineHighlights.of(decos),
-                scrollIntoView: true
-              });
-            }
-          }
-        }
-
-        const newMsgId = Date.now();
-        setChatHistory(prev => [...prev, { id: newMsgId, role: 'model', text: response, isAutomatedFeedback: true }]);
-        setActivePulseId(newMsgId);
-      }
-    } catch (e) {
-      // Ignoriere Fehler bei Hintergrundanfragen
-    }
-  };
-
   const handleRun = async () => {
     if (!interpreterRef.current) return;
     setLogs([]); // clear logs
     setIsRunning(true);
-    setActivePulseId(null);
+    setShowPostRunPrompt(false);
     
     // Clear line highlights when executing
     const view = cmRef.current?.view;
@@ -191,9 +148,7 @@ function App() {
 
     await interpreterRef.current.execute(code);
     setIsRunning(false);
-
-    // Automatisiertes Feedback triggern (ohne isTyping zu setzen, damit Editor nicht gesperrt wird)
-    triggerAutomatedFeedback();
+    setShowPostRunPrompt(true);
   };
 
   const handleStop = () => {
@@ -218,8 +173,8 @@ function App() {
     if (!userMsg.trim() || isTyping) return;
     
     if (!presetMsg) setChatInput('');
-    setActivePulseId(null);
-    setChatHistory(prev => [...prev, { id: Date.now(), role: 'user', text: userMsg }]);
+    setShowPostRunPrompt(false);
+    setChatHistory(prev => [...prev, { role: 'user', text: userMsg }]);
     setIsTyping(true);
 
     const view = cmRef.current?.view;
@@ -256,9 +211,9 @@ function App() {
         }
       }
 
-      setChatHistory(prev => [...prev, { id: Date.now(), role: 'model', text: response }]);
+      setChatHistory(prev => [...prev, { role: 'model', text: response }]);
     } catch (e: any) {
-      setChatHistory(prev => [...prev, { id: Date.now(), role: 'model', text: 'Fehler: ' + e.message }]);
+      setChatHistory(prev => [...prev, { role: 'model', text: 'Fehler: ' + e.message }]);
     } finally {
       setIsTyping(false);
     }
@@ -294,15 +249,28 @@ function App() {
           made by Colin
         </div>
         <div className="floating-panel editor-panel" style={{ position: 'relative' }}>
-          <button 
-            onClick={handleFormatCode}
-            title="Code formatieren"
-            style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', transition: 'all 0.2s' }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#fff'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#94a3b8'; }}
-          >
-            <AlignLeft size={14} /> Formatieren
-          </button>
+          <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10, display: 'flex', gap: '8px' }}>
+            <button 
+              onClick={() => handleSendChat("Was könnte man an meinem Code verbessern?")}
+              title="KI nach Tipps fragen"
+              disabled={isTyping}
+              style={{ background: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.3)', color: '#818cf8', padding: '6px 10px', borderRadius: '6px', cursor: isTyping ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', transition: 'all 0.2s', opacity: isTyping ? 0.5 : 1 }}
+              onMouseEnter={(e) => { if(!isTyping) { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.2)'; e.currentTarget.style.color = '#c7d2fe'; } }}
+              onMouseLeave={(e) => { if(!isTyping) { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.1)'; e.currentTarget.style.color = '#818cf8'; } }}
+            >
+              <Sparkles size={14} /> KI überprüfen
+            </button>
+            <button 
+              onClick={handleFormatCode}
+              title="Code formatieren"
+              disabled={isTyping}
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', padding: '6px 10px', borderRadius: '6px', cursor: isTyping ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', transition: 'all 0.2s', opacity: isTyping ? 0.5 : 1 }}
+              onMouseEnter={(e) => { if(!isTyping) { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#fff'; } }}
+              onMouseLeave={(e) => { if(!isTyping) { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#94a3b8'; } }}
+            >
+              <AlignLeft size={14} /> Formatieren
+            </button>
+          </div>
           <CodeMirror
             ref={cmRef}
             value={code}
@@ -312,7 +280,7 @@ function App() {
             readOnly={isTyping}
             onChange={(value) => {
               setCode(value);
-              setActivePulseId(null);
+              setShowPostRunPrompt(false);
               handleStop();
             }}
             className={`cm-editor-wrapper ${isTyping ? 'disabled' : ''}`}
@@ -322,28 +290,40 @@ function App() {
               highlightActiveLine: true
             }}
           />
-        </div>
-        <div className="floating-panel console-panel">
+        </div        <div className="floating-panel console-panel">
           <div className="console-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
             <span style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Konsolenausgabe</span>
-            <button 
-              className="btn btn-copy" 
-              onClick={(e) => {
-                navigator.clipboard.writeText(logs.map(l => l.text).join('\\n'));
-                const btn = e.currentTarget;
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #4ade80"><path d="M20 6 9 17l-5-5"/></svg> Kopiert!';
-                btn.style.color = '#4ade80';
-                setTimeout(() => {
-                  btn.innerHTML = originalText;
-                  btn.style.color = '';
-                }, 2000);
-              }}
-              title="Konsolenausgabe kopieren"
-            >
-              <Copy size={14} /> Kopieren
-            </button>
-          </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {logs.some(l => l.type === 'error') && (
+                <button 
+                  className="btn btn-copy animate-fade-in" 
+                  style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.1)' }}
+                  onClick={() => handleSendChat("Warum funktioniert mein Code nicht?")}
+                  title="KI nach Fehler fragen"
+                  disabled={isTyping}
+                >
+                  <Bug size={14} /> KI fragen
+                </button>
+              )}
+              <button 
+                className="btn btn-copy" 
+                onClick={(e) => {
+                  navigator.clipboard.writeText(logs.map(l => l.text).join('\n'));
+                  const btn = e.currentTarget;
+                  const originalText = btn.innerHTML;
+                  btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #4ade80"><path d="M20 6 9 17l-5-5"/></svg> Kopiert!';
+                  btn.style.color = '#4ade80';
+                  setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.color = '';
+                  }, 2000);
+                }}
+                title="Konsolenausgabe kopieren"
+              >
+                <Copy size={14} /> Kopieren
+              </button>
+            </div>
+          </div>v>
           <div className="console-messages">
             {logs.map((log) => (
               <div key={log.id} className={`${log.type}`}>
@@ -370,49 +350,49 @@ function App() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px' }}>
                 <button 
                   onClick={() => handleSendChat("Wie fange ich an?")}
-                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '13px', transition: 'background 0.2s' }}
+                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '13px', transition: 'background 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}
                   onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
                   onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
                 >
-                  🚀 Wie fange ich an?
+                  <Rocket size={16} color="#818cf8" /> Wie fange ich an?
                 </button>
                 <button 
                   onClick={() => handleSendChat("Was sind die wichtigsten Befehle?")}
-                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '13px', transition: 'background 0.2s' }}
+                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '13px', transition: 'background 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}
                   onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
                   onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
                 >
-                  💡 Was sind die wichtigsten Befehle?
+                  <BookOpen size={16} color="#34d399" /> Was sind die wichtigsten Befehle?
                 </button>
                 <button 
                   onClick={() => handleSendChat("Erkläre mir den aktuellen Code.")}
-                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '13px', transition: 'background 0.2s' }}
+                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '13px', transition: 'background 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}
                   onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
                   onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
                 >
-                  📖 Erkläre mir den aktuellen Code.
+                  <Info size={16} color="#60a5fa" /> Erkläre mir den aktuellen Code.
                 </button>
                 <button 
                   onClick={() => handleSendChat("Warum funktioniert mein Code nicht?")}
-                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '13px', transition: 'background 0.2s' }}
+                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '13px', transition: 'background 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}
                   onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
                   onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
                 >
-                  🐞 Warum funktioniert mein Code nicht?
+                  <Bug size={16} color="#f87171" /> Warum funktioniert mein Code nicht?
                 </button>
                 <button 
                   onClick={() => handleSendChat("Was könnte man an meinem Code verbessern?")}
-                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '13px', transition: 'background 0.2s' }}
+                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '13px', transition: 'background 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}
                   onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
                   onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
                 >
-                  ✨ Was könnte man an meinem Code verbessern?
+                  <Wand2 size={16} color="#fbbf24" /> Was könnte man an meinem Code verbessern?
                 </button>
               </div>
             )}
 
             {chatHistory.map((msg, idx) => (
-              <div key={msg.id || idx} className={msg.id === activePulseId ? 'automated-feedback-pulse' : ''} style={{ 
+              <div key={idx} style={{ 
                 marginBottom: '12px', 
                 padding: '10px 14px', 
                 borderRadius: '12px',
@@ -424,8 +404,8 @@ function App() {
                 fontFamily: msg.role === 'model' ? 'Inter, sans-serif' : 'inherit',
                 transition: 'all 0.3s'
               }}>
-                <strong style={{ display: 'block', marginBottom: '4px', color: msg.role === 'user' ? '#818cf8' : (msg.isAutomatedFeedback ? '#ef4444' : '#38bdf8'), fontSize: '12px' }}>
-                  {msg.role === 'user' ? 'Du' : (msg.isAutomatedFeedback ? 'KI Assistent (Tipp)' : 'KI Assistent')}
+                <strong style={{ display: 'block', marginBottom: '4px', color: msg.role === 'user' ? '#818cf8' : '#38bdf8', fontSize: '12px' }}>
+                  {msg.role === 'user' ? 'Du' : 'KI Assistent'}
                 </strong>
                 {msg.text}
               </div>
@@ -451,11 +431,26 @@ function App() {
 
       <div className="right-panel">
         <div className="floating-panel simulator-panel">
-          <div className="control-panel">
+          <div className="control-panel" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             {!isRunning ? (
               <button className="btn btn-primary" onClick={handleRun} disabled={isTyping} title={isTyping ? "Warte auf KI..." : ""}><Play size={16} /> Code ausführen</button>
             ) : (
               <button className="btn btn-danger" onClick={handleStop}><Square size={16} /> Ausführung stoppen</button>
+            )}
+            
+            {showPostRunPrompt && !isRunning && !isTyping && (
+              <div className="animate-fade-in" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#cbd5e1' }}>
+                <HelpCircle size={14} color="#818cf8" />
+                Funktioniert etwas nicht? 
+                <button 
+                  onClick={() => handleSendChat("Warum funktioniert mein Code nicht?")}
+                  style={{ background: 'transparent', border: '1px solid #818cf8', color: '#818cf8', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold', transition: 'all 0.2s' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#818cf8'; e.currentTarget.style.color = '#fff'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#818cf8'; }}
+                >
+                  KI fragen
+                </button>
+              </div>
             )}
           </div>
 

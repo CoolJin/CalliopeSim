@@ -54,7 +54,7 @@ Du kannst diese Befehle dem Nutzer jederzeit vorschlagen, wenn er danach fragt o
     // Modelle absteigend nach Qualität sortiert
     const MODELS = [
       "gemini-3.5-flash",
-      "gemini-3-flash"
+      "gemini-3.0-flash"
     ];
 
     let lastError: any = null;
@@ -64,7 +64,10 @@ Du kannst diese Befehle dem Nutzer jederzeit vorschlagen, wenn er danach fragt o
       const modelName = MODELS[modelIndex];
       for (let keyIndex = 0; keyIndex < API_KEYS.length; keyIndex++) {
         try {
-          const ai = new GoogleGenAI({ apiKey: API_KEYS[keyIndex] });
+          const ai = new GoogleGenAI({ 
+            apiKey: API_KEYS[keyIndex],
+            apiVersion: 'v1alpha'
+          });
 
           const formattedHistory: any[] = [];
           let lastRole: string | null = null;

@@ -39,7 +39,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background: linear-gradient(to bottom, #0a0a0f, var(--bg-deep));
+  background: #020203;
 }
 
 #root {

@@ -260,7 +260,7 @@ body {
 .chat-input-field {
   flex: 1;
   padding: 14px 20px;
-  border-radius: 50px;
+  border-radius: 18px;
   border: 1px solid var(--border);
   background: rgba(0,0,0,0.15);
   color: white;

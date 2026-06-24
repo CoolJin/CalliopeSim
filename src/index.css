@@ -310,7 +310,7 @@ body {
 }
 
 .cm-editor-wrapper .cm-gutters {
-  background: transparent !important;
+  background: rgba(0,0,0,0.3) !important;
   backdrop-filter: blur(32px) !important;
   -webkit-backdrop-filter: blur(32px) !important;
   border-right: 1px solid var(--border);
@@ -369,7 +369,7 @@ body {
   align-items: center;
   gap: 8px;
   padding: 12px 24px;
-  border-radius: 12px;
+  border-radius: 24px;
   font-weight: 600;
   font-size: 15px;
   cursor: pointer;
@@ -382,10 +382,10 @@ body {
 .btn-glass {
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(32px);
-  -webkit-backdrop-filter: blur(32px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
   transition: all var(--easing) 0.3s;
   z-index: 1;
@@ -411,23 +411,23 @@ body {
 
 .btn-glass-primary {
   background: rgba(94, 106, 210, 0.15) !important;
-  border-color: rgba(94, 106, 210, 0.1) !important;
+  border-color: rgba(94, 106, 210, 0.2) !important;
 }
 
 .btn-glass-primary:hover {
   background: rgba(94, 106, 210, 0.25) !important;
-  border-color: rgba(114, 126, 230, 0.2) !important;
+  border-color: rgba(114, 126, 230, 0.3) !important;
   box-shadow: 0 4px 14px var(--accent-glow);
 }
 
 .btn-glass-danger {
   background: rgba(220, 38, 38, 0.15) !important;
-  border-color: rgba(220, 38, 38, 0.1) !important;
+  border-color: rgba(220, 38, 38, 0.2) !important;
 }
 
 .btn-glass-danger:hover {
   background: rgba(220, 38, 38, 0.25) !important;
-  border-color: rgba(240, 58, 58, 0.2) !important;
+  border-color: rgba(240, 58, 58, 0.3) !important;
   box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
 }
 
@@ -487,7 +487,7 @@ body {
 .variables-panel {
   width: 100%;
   margin-top: 24px;
-  background: transparent;
+  background: rgba(0,0,0,0.3);
   border-radius: 12px;
   padding: 16px;
   border: 1px solid rgba(255,255,255,0.05);
@@ -594,7 +594,7 @@ body {
 /* AI Chat Preset Buttons */
 .preset-btn {
   padding: 14px 20px;
-  border-radius: 12px;
+  border-radius: 24px;
   cursor: pointer;
   text-align: left;
   font-size: 14px;

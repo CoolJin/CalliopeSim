@@ -371,7 +371,7 @@ function App() {
       <div className="middle-panel">
         <div className="floating-panel ai-chat-panel" style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column' }}>
           <h3 style={{ fontSize: '16px', color: '#6366F1', margin: 0, textShadow: '0 0 10px rgba(99, 102, 241, 0.3)', marginBottom: '16px' }}>KI-Assistent</h3>
-          <div className="chat-messages" style={{ flex: 1, background: 'rgba(0,0,0,0.2)', borderRadius: '12px', padding: '16px', overflowY: 'auto', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <div className="chat-messages" style={{ flex: 1, background: 'rgba(0,0,0,0.3)', borderRadius: '12px', padding: '16px', overflowY: 'auto', border: '1px solid rgba(255,255,255,0.05)' }}>
             {chatHistory.length === 0 && (
               <div className="info" style={{ marginBottom: '16px', lineHeight: '1.5' }}>
                 Hallo! Wie kann ich dir heute beim Programmieren helfen? Ich sehe deinen C++ Code und deine Fehler automatisch.

@@ -312,6 +312,8 @@ body {
 
 .cm-editor-wrapper .cm-gutters {
   background: rgba(0,0,0,0.2) !important;
+  backdrop-filter: blur(32px) !important;
+  -webkit-backdrop-filter: blur(32px) !important;
   border-right: 1px solid var(--border);
 }
 
@@ -486,7 +488,6 @@ body {
 .variables-panel {
   width: 100%;
   margin-top: 24px;
-  background: rgba(0,0,0,0.2);
   border-radius: 12px;
   padding: 16px;
   border: 1px solid rgba(255,255,255,0.05);
@@ -599,4 +600,11 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+/* Unified inner glass box styling for consistent tint and blur */
+.inner-glass-box, .variables-panel {
+  background: rgba(0, 0, 0, 0.2) !important;
+  backdrop-filter: blur(32px) !important;
+  -webkit-backdrop-filter: blur(32px) !important;
 }

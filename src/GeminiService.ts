@@ -53,8 +53,8 @@ Du kannst diese Befehle dem Nutzer jederzeit vorschlagen, wenn er danach fragt o
 
     // Modelle absteigend nach Qualität sortiert
     const MODELS = [
-      "gemini-1.5-pro",
-      "gemini-1.5-flash"
+      "gemini-3.5-flash",
+      "gemini-3-flash"
     ];
 
     let lastError: any = null;

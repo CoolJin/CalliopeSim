@@ -402,6 +402,25 @@ body {
   z-index: -1;
 }
 
+.btn-restart {
+  padding: 0;
+  width: 43px;
+  height: 43px;
+  border-radius: 24px !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@keyframes spin360 {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.spin-animation {
+  animation: spin360 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .btn-glass:hover {
   background: rgba(255, 255, 255, 0.08);
   transform: translateY(-1px);

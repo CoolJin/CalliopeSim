@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 
 const API_KEYS = [
   import.meta.env.VITE_GEMINI_API_KEY_1 || "",
@@ -54,25 +54,17 @@ Du kannst diese Befehle dem Nutzer jederzeit vorschlagen, wenn er danach fragt o
     // Modelle absteigend nach Qualität sortiert
     const MODELS = [
       "gemini-3.5-flash",
-      "gemini-3.0-flash"
+      "gemini-3-flash"
     ];
 
     let lastError: any = null;
     let attemptCount = 0;
 
-    // Wir probieren zuerst das beste Modell über alle API-Keys hinweg, 
-    // dann das zweitbeste über alle Keys, usw.
-    // Da wir bei jedem Aufruf von vorne anfangen, wird auch immer wieder geprüft,
-    // ob die besten Modelle (oder Keys) wieder verfügbar sind.
     for (let modelIndex = 0; modelIndex < MODELS.length; modelIndex++) {
       const modelName = MODELS[modelIndex];
       for (let keyIndex = 0; keyIndex < API_KEYS.length; keyIndex++) {
         try {
-          const genAI = new GoogleGenerativeAI(API_KEYS[keyIndex]);
-          const model = genAI.getGenerativeModel({ 
-            model: modelName,
-            systemInstruction: systemInstruction
-          });
+          const ai = new GoogleGenAI({ apiKey: API_KEYS[keyIndex] });
 
           const formattedHistory: any[] = [];
           let lastRole: string | null = null;
@@ -88,18 +80,22 @@ Du kannst diese Befehle dem Nutzer jederzeit vorschlagen, wenn er danach fragt o
             lastRole = role;
           }
 
-          const chat = model.startChat({
-            history: formattedHistory,
-            generationConfig: {
+          // Füge die aktuelle User-Nachricht hinzu
+          formattedHistory.push({ role: 'user', parts: [{ text: userMessage }] });
+
+          const response = await ai.models.generateContent({
+            model: modelName,
+            contents: formattedHistory,
+            config: {
+              systemInstruction: systemInstruction,
               maxOutputTokens: 1000,
               temperature: 0.2,
-            },
+            }
           });
 
-          const result = await chat.sendMessage(userMessage);
           const remainingCapacity = 100 - (attemptCount * 10);
           console.log(`Successfully used model ${modelName} with API Key ${keyIndex + 1}. Capacity: ${remainingCapacity}%`);
-          return { text: result.response.text(), remainingCapacity };
+          return { text: response.text || "", remainingCapacity };
           
         } catch (error: any) {
           console.warn(`Model ${modelName} failed on API Key ${keyIndex + 1}:`, error.message || error);

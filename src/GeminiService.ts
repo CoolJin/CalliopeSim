@@ -67,10 +67,15 @@ WHITELIST CALLIOPE BEFEHLE (Keine anderen erfinden!):
       { timeoutMs: 15000, name: "Slow Pass (15s)" }
     ];
 
+    const deadKeys = new Set<string>();
+
     for (const pass of PASSES) {
       for (let modelIndex = 0; modelIndex < MODELS.length; modelIndex++) {
         const modelName = MODELS[modelIndex];
         for (let keyIndex = 0; keyIndex < API_KEYS.length; keyIndex++) {
+          const comboKey = `${modelName}-${keyIndex}`;
+          if (deadKeys.has(comboKey)) continue;
+
           try {
             const ai = new GoogleGenAI({ 
               apiKey: API_KEYS[keyIndex]
@@ -116,10 +121,15 @@ WHITELIST CALLIOPE BEFEHLE (Keine anderen erfinden!):
             return { text: response.text || "", remainingCapacity };
             
           } catch (error: any) {
+            const isTimeout = error?.message?.includes('Timeout');
             console.warn(`Model ${modelName} failed on API Key ${keyIndex + 1} (${pass.name}):`, error.message || error);
             lastError = error;
             attemptCount++;
-            // Bei jedem Fehler probieren wir den nächsten Key oder das nächste Modell
+            
+            // Wenn der Fehler KEIN Timeout war (z.B. Rate Limit 429), probieren wir diese Kombi im Slow Pass nicht nochmal
+            if (!isTimeout) {
+              deadKeys.add(comboKey);
+            }
             continue;
           }
         }

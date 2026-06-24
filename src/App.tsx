@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Square, AlertCircle, Info, CheckCircle, Copy, AlignLeft, Sparkles, Bug, Rocket, BookOpen, Wand2, HelpCircle } from 'lucide-react';
+import { Play, Square, AlertCircle, Info, CheckCircle, Copy, AlignLeft, Sparkles, Bug, Rocket, BookOpen, Wand2, HelpCircle, Volume2, VolumeX } from 'lucide-react';
 import CodeMirror from '@uiw/react-codemirror';
 import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { cpp } from '@codemirror/lang-cpp';
@@ -10,6 +10,7 @@ import type { CalliopeState } from './CalliopeState';
 import { initialCalliopeState } from './CalliopeState';
 import { CalliopeInterpreter } from './Interpreter';
 import { geminiService } from './GeminiService';
+import { audioService } from './AudioService';
 import Silk from './components/Silk';
 
 type LogMessage = {
@@ -105,6 +106,7 @@ function App() {
   const [isTyping, setIsTyping] = useState(false);
   const [showPresets, setShowPresets] = useState(true);
   const [apiCapacity, setApiCapacity] = useState<number | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
   const [showPostRunPrompt, setShowPostRunPrompt] = useState(false);
   const [isConsoleButtonPulsing, setIsConsoleButtonPulsing] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -575,7 +577,35 @@ function App() {
             </div>
           </div>
 
-          <div className="calliope-board-wrapper">
+          <div className="calliope-board-wrapper" style={{ position: 'relative' }}>
+            <button 
+              onClick={() => {
+                const muted = audioService.toggleMute();
+                setIsMuted(muted);
+              }}
+              style={{
+                position: 'absolute',
+                top: '10px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: 10,
+                background: 'rgba(0, 0, 0, 0.5)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '50%',
+                width: '40px',
+                height: '40px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                color: isMuted ? '#ef4444' : '#10b981',
+                backdropFilter: 'blur(4px)',
+                transition: 'all 0.2s'
+              }}
+              title={isMuted ? "Ton einschalten" : "Ton ausschalten"}
+            >
+              {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+            </button>
             <div className="calliope-board">
               <img src={`${import.meta.env.BASE_URL}calliope_clean.png`} alt="Calliope Board" className="calliope-bg" onError={(e) => e.currentTarget.style.display = 'none'} />
 

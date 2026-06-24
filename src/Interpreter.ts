@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { font } from './font';
+import { audioService } from './AudioService';
 const Parser = (window as any).TreeSitter;
 type SyntaxNode = any;
 import type { CalliopeState } from './CalliopeState';
@@ -47,6 +48,7 @@ export class CalliopeInterpreter {
     this.currentExecutionId++;
     if (this.isRunning) {
       this.api.log("Ausführung durch Benutzer gestoppt.", "info");
+      audioService.stopSound();
     }
     this.isRunning = false;
   }
@@ -84,6 +86,8 @@ export class CalliopeInterpreter {
     }
 
     this.api.log("Kompilierung & Validierung erfolgreich. Führe aus...", "success");
+    // Reset Audio
+    audioService.stopSound();
 
     let executionSuccess = true;
     try {
@@ -105,6 +109,7 @@ export class CalliopeInterpreter {
         executionSuccess = false;
       }
     } finally {
+      audioService.stopSound();
       this.isRunning = false;
     }
     
@@ -138,6 +143,24 @@ export class CalliopeInterpreter {
   }
 
   private validateAST(node: SyntaxNode, errors: string[]) {
+    // Check if MicroBit.h is included at the root level
+    if (node.type === 'translation_unit') {
+      let hasMicrobitInclude = false;
+      for (let i = 0; i < node.namedChildCount; i++) {
+        const child = node.namedChild(i);
+        if (child && child.type === 'preproc_include') {
+          const pathNode = child.childForFieldName('path');
+          if (pathNode && pathNode.text.includes('MicroBit.h')) {
+            hasMicrobitInclude = true;
+            break;
+          }
+        }
+      }
+      if (!hasMicrobitInclude) {
+        errors.push("Fehlende Bibliothek: '#include \"MicroBit.h\"' muss am Anfang des Programms stehen, sonst funktioniert der Calliope nicht!");
+      }
+    }
+
     if (node.type === 'call_expression') {
       const funcName = node.childForFieldName('function')?.text;
       
@@ -186,7 +209,9 @@ export class CalliopeInterpreter {
             `${m}.display.image.setPixelValue`,
             `${m}.display.image.getPixelValue`,
             `${m}.init`,
-            `${m}.sleep`
+            `${m}.sleep`,
+            `${m}.soundmotor.soundOn`,
+            `${m}.soundmotor.soundOff`
           ];
           
           const isSupported = knownSupported.some(name => funcName === name || funcName.startsWith(name));
@@ -421,6 +446,15 @@ export class CalliopeInterpreter {
         }
         else if (funcName?.startsWith(`${m}.rgb.off`)) {
           this.api.setState({ rgbLed: [0, 0, 0] });
+          return;
+        }
+        else if (funcName?.startsWith(`${m}.soundmotor.soundOn`)) {
+          const freq = Number(args[0]) || 440;
+          audioService.playSound(freq);
+          return;
+        }
+        else if (funcName?.startsWith(`${m}.soundmotor.soundOff`)) {
+          audioService.stopSound();
           return;
         }
         else if (funcName === `${m}.init`) {

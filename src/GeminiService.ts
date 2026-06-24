@@ -45,6 +45,12 @@ LISTE ALLER VERFÜGBAREN CALLIOPE BEFEHLE IN DIESEM SIMULATOR:
 - _uBit.buttonA.isPressed(): Prüft, ob Knopf A gerade gedrückt ist (gibt true oder false zurück).
 - _uBit.buttonB.isPressed(): Prüft, ob Knopf B gerade gedrückt ist (gibt true oder false zurück).
 - _uBit.buttonAB.isPressed(): Prüft, ob Knopf A und B gleichzeitig gedrückt sind.
+- _uBit.soundmotor.soundOn(frequenz): Spielt einen Ton mit der angegebenen Frequenz (z.B. 261.626 für ein C) ab. Der Ton spielt so lange, bis er gestoppt wird oder das Programm schläft.
+- _uBit.soundmotor.soundOff(): Schaltet die Tonausgabe sofort aus.
+Typisches Muster für Töne: \`_uBit.soundmotor.soundOn(440); _uBit.sleep(1000); _uBit.soundmotor.soundOff();\`
+
+CRITICAL: Der Schüler MUSS immer zwingend \`#include "MicroBit.h"\` ganz oben in seinem Code stehen haben, sonst funktioniert absolut gar nichts und der Compiler wirft einen Fehler! Achte darauf, dass dieses Include nicht versehentlich gelöscht wird.
+
 Du kannst diese Befehle dem Nutzer jederzeit vorschlagen, wenn er danach fragt oder wenn sie sein Problem lösen würden. Erkläre dabei immer kurz, wofür die Parameter in den Klammern stehen!`;
 
     // Modelle absteigend nach Qualität sortiert

@@ -62,59 +62,66 @@ WHITELIST CALLIOPE BEFEHLE (Keine anderen erfinden!):
     let lastError: any = null;
     let attemptCount = 0;
 
-    for (let modelIndex = 0; modelIndex < MODELS.length; modelIndex++) {
-      const modelName = MODELS[modelIndex];
-      for (let keyIndex = 0; keyIndex < API_KEYS.length; keyIndex++) {
-        try {
-          const ai = new GoogleGenAI({ 
-            apiKey: API_KEYS[keyIndex]
-          });
+    const PASSES = [
+      { timeoutMs: 4000, name: "Fast Pass (4s)" },
+      { timeoutMs: 15000, name: "Slow Pass (15s)" }
+    ];
 
-          const formattedHistory: any[] = [];
-          let lastRole: string | null = null;
-          
-          for (const msg of history) {
-            const role = msg.role === 'model' ? 'model' : 'user';
-            if (role === 'model' && lastRole !== 'user') {
-              formattedHistory.push({ role: 'user', parts: [{ text: '[Automatischer System-Prompt zur Code-Überprüfung]' }] });
-            } else if (role === 'user' && lastRole === 'user') {
-              formattedHistory.push({ role: 'model', parts: [{ text: '[System: Nutzer hat eine weitere Frage gestellt]' }] });
-            }
-            formattedHistory.push({ role, parts: [{ text: msg.text }] });
-            lastRole = role;
-          }
+    for (const pass of PASSES) {
+      for (let modelIndex = 0; modelIndex < MODELS.length; modelIndex++) {
+        const modelName = MODELS[modelIndex];
+        for (let keyIndex = 0; keyIndex < API_KEYS.length; keyIndex++) {
+          try {
+            const ai = new GoogleGenAI({ 
+              apiKey: API_KEYS[keyIndex]
+            });
 
-          // Füge die aktuelle User-Nachricht hinzu
-          formattedHistory.push({ role: 'user', parts: [{ text: userMessage }] });
-
-          // Timeout-Wrapper, um auf keinen Fall lange zu hängen (z.B. bei 503 Errors)
-          const timeoutPromise = new Promise<never>((_, reject) => {
-            setTimeout(() => reject(new Error("Timeout: Modell antwortet zu langsam")), 7000);
-          });
-
-          const response = await Promise.race([
-            ai.models.generateContent({
-              model: modelName,
-              contents: formattedHistory,
-              config: {
-                systemInstruction: systemInstruction,
-                maxOutputTokens: 1000,
-                temperature: 0.2,
+            const formattedHistory: any[] = [];
+            let lastRole: string | null = null;
+            
+            for (const msg of history) {
+              const role = msg.role === 'model' ? 'model' : 'user';
+              if (role === 'model' && lastRole !== 'user') {
+                formattedHistory.push({ role: 'user', parts: [{ text: '[Automatischer System-Prompt zur Code-Überprüfung]' }] });
+              } else if (role === 'user' && lastRole === 'user') {
+                formattedHistory.push({ role: 'model', parts: [{ text: '[System: Nutzer hat eine weitere Frage gestellt]' }] });
               }
-            }),
-            timeoutPromise
-          ]) as any;
+              formattedHistory.push({ role, parts: [{ text: msg.text }] });
+              lastRole = role;
+            }
 
-          const remainingCapacity = 100 - (attemptCount * 10);
-          console.log(`Successfully used model ${modelName} with API Key ${keyIndex + 1}. Capacity: ${remainingCapacity}%`);
-          return { text: response.text || "", remainingCapacity };
-          
-        } catch (error: any) {
-          console.warn(`Model ${modelName} failed on API Key ${keyIndex + 1}:`, error.message || error);
-          lastError = error;
-          attemptCount++;
-          // Bei jedem Fehler probieren wir den nächsten Key oder das nächste Modell
-          continue;
+            // Füge die aktuelle User-Nachricht hinzu
+            formattedHistory.push({ role: 'user', parts: [{ text: userMessage }] });
+
+            // Timeout-Wrapper, um auf keinen Fall lange zu hängen
+            const timeoutPromise = new Promise<never>((_, reject) => {
+              setTimeout(() => reject(new Error(`Timeout (${pass.name})`)), pass.timeoutMs);
+            });
+
+            const response = await Promise.race([
+              ai.models.generateContent({
+                model: modelName,
+                contents: formattedHistory,
+                config: {
+                  systemInstruction: systemInstruction,
+                  maxOutputTokens: 1000,
+                  temperature: 0.2,
+                }
+              }),
+              timeoutPromise
+            ]) as any;
+
+            const remainingCapacity = 100 - (attemptCount * 10);
+            console.log(`Successfully used model ${modelName} with API Key ${keyIndex + 1} during ${pass.name}. Capacity: ${remainingCapacity}%`);
+            return { text: response.text || "", remainingCapacity };
+            
+          } catch (error: any) {
+            console.warn(`Model ${modelName} failed on API Key ${keyIndex + 1} (${pass.name}):`, error.message || error);
+            lastError = error;
+            attemptCount++;
+            // Bei jedem Fehler probieren wir den nächsten Key oder das nächste Modell
+            continue;
+          }
         }
       }
     }

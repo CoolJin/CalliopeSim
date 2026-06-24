@@ -80,6 +80,7 @@ function App() {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [showPresets, setShowPresets] = useState(true);
   const [showPostRunPrompt, setShowPostRunPrompt] = useState(false);
   const [isConsoleButtonPulsing, setIsConsoleButtonPulsing] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -100,6 +101,7 @@ function App() {
   const logsRef = useRef(logs);
   const chatHistoryRef = useRef(chatHistory);
   const postRunPromptTimerRef = useRef<number | null>(null);
+  const showPresetsTimerRef = useRef<number | null>(null);
   useEffect(() => { btnARef.current = btnA; }, [btnA]);
   useEffect(() => { btnBRef.current = btnB; }, [btnB]);
   useEffect(() => { logsRef.current = logs; }, [logs]);
@@ -187,7 +189,9 @@ function App() {
     
     if (!presetMsg) setChatInput('');
     if (postRunPromptTimerRef.current) clearTimeout(postRunPromptTimerRef.current);
+    if (showPresetsTimerRef.current) clearTimeout(showPresetsTimerRef.current);
     setShowPostRunPrompt(false);
+    setShowPresets(false);
     setIsConsoleButtonPulsing(false);
     setChatHistory(prev => [...prev, { role: 'user', text: userMsg }]);
     setIsTyping(true);
@@ -227,6 +231,10 @@ function App() {
       }
 
       setChatHistory(prev => [...prev, { role: 'model', text: response }]);
+      
+      showPresetsTimerRef.current = window.setTimeout(() => {
+        setShowPresets(true);
+      }, 2000);
     } catch (e: any) {
       let errorMsg = e.message || String(e);
       if (errorMsg.includes("503") || errorMsg.includes("high demand") || errorMsg.includes("overloaded")) {
@@ -239,6 +247,10 @@ function App() {
         errorMsg = "Ein unbekannter Fehler ist bei der Anfrage aufgetreten. Bitte versuche es noch einmal.";
       }
       setChatHistory(prev => [...prev, { role: 'model', text: 'Fehler: ' + errorMsg }]);
+      
+      showPresetsTimerRef.current = window.setTimeout(() => {
+        setShowPresets(true);
+      }, 2000);
     } finally {
       setIsTyping(false);
     }
@@ -378,8 +390,8 @@ function App() {
               </div>
             )}
             
-            {chatHistory.length === 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px' }}>
+            {showPresets && (
+              <div className="fade-in-presets" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px' }}>
                 <button 
                   onClick={() => handleSendChat("Wie fange ich an?")}
                   className="preset-btn btn-glass"
@@ -418,8 +430,8 @@ function App() {
                 marginBottom: '12px', 
                 padding: '10px 14px', 
                 borderRadius: '12px',
-                background: msg.role === 'user' ? 'rgba(249, 115, 22, 0.05)' : 'var(--surface)',
-                border: msg.role === 'user' ? '1px solid rgba(249, 115, 22, 0.2)' : '1px solid var(--border)',
+                background: msg.role === 'user' ? 'rgba(249, 115, 22, 0.02)' : 'var(--surface)',
+                border: msg.role === 'user' ? '1px solid rgba(249, 115, 22, 0.1)' : '1px solid var(--border)',
                 color: msg.role === 'user' ? '#ffedd5' : 'var(--foreground)',
                 alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
                 whiteSpace: 'pre-wrap',

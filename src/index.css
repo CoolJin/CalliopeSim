@@ -607,3 +607,12 @@ body {
   -webkit-backdrop-filter: blur(32px) !important;
   backdrop-filter: blur(32px) !important;
 }
+
+@keyframes fadeInPreset {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in-presets {
+  animation: fadeInPreset 1s ease-out forwards;
+}

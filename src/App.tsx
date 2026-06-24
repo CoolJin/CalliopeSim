@@ -283,7 +283,7 @@ function App() {
               title="KI nach Tipps fragen"
               disabled={isTyping}
               className="btn-glass btn-glass-primary"
-              style={{ padding: '10px 16px', borderRadius: '10px', cursor: isTyping ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', opacity: isTyping ? 0.5 : 1 }}
+              style={{ padding: '10px 16px', borderRadius: '18px', cursor: isTyping ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', opacity: isTyping ? 0.5 : 1 }}
             >
               <Sparkles size={16} /> Verbesserungsvorschläge
             </button>
@@ -292,7 +292,7 @@ function App() {
               title="Code formatieren"
               disabled={isTyping}
               className="btn-glass"
-              style={{ padding: '10px 16px', borderRadius: '10px', cursor: isTyping ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', opacity: isTyping ? 0.5 : 1 }}
+              style={{ padding: '10px 16px', borderRadius: '18px', cursor: isTyping ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', opacity: isTyping ? 0.5 : 1 }}
             >
               <AlignLeft size={16} /> Formatieren
             </button>
@@ -329,7 +329,7 @@ function App() {
                   onClick={() => handleSendChat("Warum funktioniert mein Code nicht?")}
                   title="KI nach Fehler fragen"
                   disabled={isTyping}
-                  style={{ padding: '10px 16px', borderRadius: '10px', cursor: isTyping ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', opacity: isTyping ? 0.5 : 1 }}
+                  style={{ padding: '10px 16px', borderRadius: '18px', cursor: isTyping ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', opacity: isTyping ? 0.5 : 1 }}
                 >
                   <Bug size={16} /> KI fragen
                 </button>
@@ -348,7 +348,7 @@ function App() {
                   }, 2000);
                 }}
                 title="Konsolenausgabe kopieren"
-                style={{ padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}
+                style={{ padding: '10px 16px', borderRadius: '18px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}
               >
                 <Copy size={16} /> Kopieren
               </button>
@@ -371,7 +371,7 @@ function App() {
       <div className="middle-panel">
         <div className="floating-panel ai-chat-panel" style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column' }}>
           <h3 style={{ fontSize: '16px', color: '#6366F1', margin: 0, textShadow: '0 0 10px rgba(99, 102, 241, 0.3)', marginBottom: '16px' }}>KI-Assistent</h3>
-          <div className="chat-messages" style={{ flex: 1, background: 'rgba(0,0,0,0.3)', borderRadius: '12px', padding: '16px', overflowY: 'auto', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <div className="chat-messages" style={{ flex: 1, background: 'rgba(0,0,0,0.2)', borderRadius: '12px', padding: '16px', overflowY: 'auto', border: '1px solid rgba(255,255,255,0.05)' }}>
             {chatHistory.length === 0 && (
               <div className="info" style={{ marginBottom: '16px', lineHeight: '1.5' }}>
                 Hallo! Wie kann ich dir heute beim Programmieren helfen? Ich sehe deinen C++ Code und deine Fehler automatisch.
@@ -477,7 +477,7 @@ function App() {
                   <button 
                     onClick={() => handleSendChat("Warum funktioniert mein Code nicht?")}
                     className="btn-glass btn-glass-primary"
-                    style={{ padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s' }}
+                    style={{ padding: '10px 16px', borderRadius: '18px', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s' }}
                   >
                     <Bug size={16} /> KI fragen
                   </button>

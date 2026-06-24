@@ -43,10 +43,6 @@ LISTE ALLER VERFÜGBAREN CALLIOPE BEFEHLE IN DIESEM SIMULATOR:
 - uBit.buttonA.isPressed(): Prüft, ob Knopf A gerade gedrückt ist (gibt true oder false zurück).
 - uBit.buttonB.isPressed(): Prüft, ob Knopf B gerade gedrückt ist (gibt true oder false zurück).
 - uBit.buttonAB.isPressed(): Prüft, ob Knopf A und B gleichzeitig gedrückt sind.
-- uBit.io.P0.isTouched() (Auch für P1, P2, P3): Prüft, ob der Touch-Pin 0 (oder 1,2,3) berührt wird.
-- uBit.io.P0.setDigitalValue(wert) (Auch für P1, P2, P3): Setzt den digitalen Wert eines Pins (0 für LOW, 1 für HIGH).
-- uBit.io.P0.getDigitalValue() (Auch für P1, P2, P3): Liest den digitalen Wert eines Pins (Gibt 0 oder 1 zurück).
-Hinweis: Alle Befehle funktionieren sowohl mit uBit... als auch mit _uBit... am Anfang.
 Du kannst diese Befehle dem Nutzer jederzeit vorschlagen, wenn er danach fragt oder wenn sie sein Problem lösen würden. Erkläre dabei immer kurz, wofür die Parameter in den Klammern stehen!`;
 
     // Modelle absteigend nach Qualität sortiert

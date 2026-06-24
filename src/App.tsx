@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Square, AlertCircle, Info, CheckCircle, Copy, AlignLeft, Sparkles, Bug, Rocket, BookOpen, Wand2, HelpCircle } from 'lucide-react';
+import { Play, Square, AlertCircle, Info, CheckCircle, Copy, AlignLeft, Sparkles, Bug, Rocket, BookOpen, Wand2, HelpCircle, RotateCw } from 'lucide-react';
 import CodeMirror from '@uiw/react-codemirror';
 import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { cpp } from '@codemirror/lang-cpp';
@@ -125,6 +125,8 @@ function App() {
   const chatHistoryRef = useRef(chatHistory);
   const postRunPromptTimerRef = useRef<number | null>(null);
   const showPresetsTimerRef = useRef<number | null>(null);
+  const lastExecutedCodeRef = useRef<string>(DEFAULT_CODE);
+
   useEffect(() => { btnARef.current = btnA; }, [btnA]);
   useEffect(() => { btnBRef.current = btnB; }, [btnB]);
   useEffect(() => { logsRef.current = logs; }, [logs]);
@@ -188,6 +190,7 @@ function App() {
       view.dispatch({ effects: clearLineHighlights.of() });
     }
 
+    lastExecutedCodeRef.current = code;
     await interpreterRef.current.execute(code);
     setIsRunning(false);
     
@@ -202,6 +205,26 @@ function App() {
     }
     setState(initialCalliopeState); // Reset UI
     setIsRunning(false);
+  };
+
+  const handleRestart = async () => {
+    handleStop();
+    // Kurze Verzögerung, damit State sicher reset ist
+    setTimeout(async () => {
+      if (!interpreterRef.current) return;
+      setLogs([]); 
+      setIsRunning(true);
+      setShowPostRunPrompt(false);
+      setIsConsoleButtonPulsing(false);
+      
+      const view = cmRef.current?.view;
+      if (view) {
+        view.dispatch({ effects: clearLineHighlights.of() });
+      }
+
+      await interpreterRef.current.execute(lastExecutedCodeRef.current);
+      setIsRunning(false);
+    }, 100);
   };
 
   const handleFormatCode = () => {
@@ -519,9 +542,14 @@ function App() {
               )}
             </div>
             
-            <div className="right-controls">
+            <div className="right-controls" style={{ display: 'flex', gap: '8px' }}>
               {!isRunning ? (
-                <button className="btn btn-glass btn-glass-primary" onClick={handleRun} disabled={isTyping} title={isTyping ? "Warte auf KI..." : ""}><Play size={16} /> Code ausführen</button>
+                <>
+                  <button className="btn btn-glass" onClick={handleRestart} title="Letzten Code neu starten" style={{ padding: '8px', aspectRatio: '1/1', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <RotateCw size={16} />
+                  </button>
+                  <button className="btn btn-glass btn-glass-primary" onClick={handleRun} disabled={isTyping} title={isTyping ? "Warte auf KI..." : ""}><Play size={16} /> Code ausführen</button>
+                </>
               ) : (
                 <button className="btn btn-glass btn-glass-danger" onClick={handleStop}><Square size={16} /> Ausführung stoppen</button>
               )}

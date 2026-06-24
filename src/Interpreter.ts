@@ -123,7 +123,6 @@ export class CalliopeInterpreter {
           '_uBit.accelerometer.',
           '_uBit.compass.',
           '_uBit.thermometer.',
-          '_uBit.io.',
           '_uBit.soundmotor.',
           '_uBit.serial.',
           '_uBit.radio.',
@@ -139,11 +138,18 @@ export class CalliopeInterpreter {
           '_uBit.display.scroll',
           '_uBit.display.print',
           '_uBit.display.clear',
+          '_uBit.display.image.',
+          '_uBit.display.setBrightness',
+          '_uBit.display.getBrightness',
           '_uBit.rgb.setColour',
           '_uBit.rgb.off',
           '_uBit.buttonA.isPressed',
           '_uBit.buttonB.isPressed',
           '_uBit.buttonAB.isPressed',
+          '_uBit.io.P12.',
+          '_uBit.io.P0.',
+          '_uBit.io.P1.',
+          '_uBit.io.P16.',
           'release_fiber',
           '_uBit.init',
           '_uBit.sleep',
@@ -211,7 +217,7 @@ export class CalliopeInterpreter {
         await this.walkWhileStatement(node, execId);
         break;
       case 'for_statement':
-        // basic support
+        await this.walkForStatement(node, execId);
         break;
       case 'declaration':
         this.walkDeclaration(node);
@@ -278,6 +284,44 @@ export class CalliopeInterpreter {
     }
   }
 
+  private async walkForStatement(node: SyntaxNode, execId: number) {
+    const initializer = node.childForFieldName('initializer');
+    const condition = node.childForFieldName('condition');
+    const update = node.childForFieldName('update');
+    const body = node.childForFieldName('body');
+
+    if (initializer) {
+      if (initializer.type === 'declaration') {
+        this.walkDeclaration(initializer);
+      } else if (initializer.type === 'expression_statement') {
+        await this.walkExpression(initializer.namedChildren[0], execId);
+      }
+    }
+
+    let maxIters = 10000;
+    while (maxIters-- > 0) {
+      if (this.currentExecutionId !== execId) throw new Error('ABORTED');
+      
+      if (condition && condition.namedChildren[0]) {
+        if (!this.evaluateExpression(condition.namedChildren[0])) break;
+      }
+      
+      if (body) {
+        if (body.type === 'compound_statement') {
+          await this.walkCompoundStatement(body, execId);
+        } else {
+          await this.walkStatement(body, execId);
+        }
+      }
+
+      if (update) {
+        this.evaluateExpression(update);
+      }
+      
+      await this.api.sleep(1);
+    }
+  }
+
   private async walkExpression(node: SyntaxNode, execId: number): Promise<any> {
     if (!node) return;
     
@@ -332,6 +376,21 @@ export class CalliopeInterpreter {
       else if (funcName?.startsWith('_uBit.rgb.off')) {
         this.api.setState({ rgbLed: [0, 0, 0] });
       }
+      else if (funcName?.startsWith('_uBit.io.')) {
+        if (funcName.includes('getDigitalValue') || funcName.includes('getAnalogValue') || funcName.includes('isTouched') || funcName.includes('readPulse')) {
+          return 0; // Stub for missing visual sensors
+        }
+        if (funcName.includes('setDigitalValue') || funcName.includes('setAnalogValue')) {
+          // Just log the output since we have no visual pins
+          this.api.log(`Pin Output: ${funcName} = ${args[0]}`, 'info');
+        }
+      }
+      else if (funcName?.startsWith('_uBit.display.setBrightness')) {
+        this.api.log(`Display-Helligkeit auf ${args[0]} gesetzt`, 'info');
+      }
+      else if (funcName?.startsWith('_uBit.display.getBrightness')) {
+        return 255;
+      }
       else if (funcName === 'release_fiber' || funcName === '_uBit.init') {
         // Ignore, boilerplate
       }
@@ -370,10 +429,31 @@ export class CalliopeInterpreter {
     }
     
     if (node.type === 'identifier') {
+      if (node.text === 'cout') return '__COUT__';
+      if (node.text === 'endl') return '__ENDL__';
       if (this.variables[node.text] !== undefined) {
         return this.variables[node.text];
       }
       throw new Error(`Variable '${node.text}' is not defined`);
+    }
+
+    if (node.type === 'update_expression') {
+      const argument = node.childForFieldName('argument');
+      const operator = node.text.includes('++') ? '++' : '--';
+      const isPrefix = node.text.startsWith(operator);
+      
+      if (argument && argument.type === 'identifier') {
+        const name = argument.text;
+        let val = this.variables[name];
+        if (val === undefined) throw new Error(`Variable '${name}' is not defined`);
+        
+        const oldVal = val;
+        val = operator === '++' ? val + 1 : val - 1;
+        this.variables[name] = val;
+        this.api.setState({ variables: { ...this.variables } });
+        
+        return isPrefix ? val : oldVal;
+      }
     }
 
     if (node.type === 'assignment_expression') {
@@ -409,6 +489,14 @@ export class CalliopeInterpreter {
           }
           return left / right;
         case '%': return left % right;
+        case '<<':
+          if (left === '__COUT__') {
+            if (right !== '__ENDL__') {
+              this.api.log(String(right), 'info');
+            }
+            return '__COUT__';
+          }
+          return left << right;
       }
     }
 

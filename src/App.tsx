@@ -469,42 +469,42 @@ function App() {
                 </div>
               </div>
             )}
-            {showPresets && (
-              <div className="fade-in-presets" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px', marginBottom: '16px' }}>
-                <button 
-                  onClick={() => handleSendChat("Wie fange ich an?")}
-                  className="preset-btn btn-glass"
-                >
-                  <Rocket size={16} color="var(--accent)" /> Wie fange ich an?
-                </button>
-                <button 
-                  onClick={() => handleSendChat("Was sind die wichtigsten Befehle?")}
-                  className="preset-btn btn-glass"
-                >
-                  <BookOpen size={16} color="var(--accent)" /> Was sind die wichtigsten Befehle?
-                </button>
-                <button 
-                  onClick={() => handleSendChat("Gebe mir eine Programmieraufgabe.")}
-                  className="preset-btn btn-glass"
-                >
-                  <Info size={16} color="var(--accent)" /> Gebe mir eine Programmieraufgabe.
-                </button>
-                <button 
-                  onClick={() => handleSendChat("Warum funktioniert mein Code nicht?")}
-                  className="preset-btn btn-glass"
-                >
-                  <Bug size={16} color="var(--accent)" /> Warum funktioniert mein Code nicht?
-                </button>
-                <button 
-                  onClick={() => handleSendChat("Was könnte man an meinem Code verbessern?")}
-                  className="preset-btn btn-glass"
-                >
-                  <Wand2 size={16} color="var(--accent)" /> Was könnte man an meinem Code verbessern?
-                </button>
-              </div>
-            )}
             <div ref={chatMessagesEndRef} />
           </div>
+          {showPresets && (
+            <div className="fade-in-presets" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px' }}>
+              <button 
+                onClick={() => handleSendChat("Wie fange ich an?")}
+                className="preset-btn btn-glass"
+              >
+                <Rocket size={16} color="var(--accent)" /> Wie fange ich an?
+              </button>
+              <button 
+                onClick={() => handleSendChat("Was sind die wichtigsten Befehle?")}
+                className="preset-btn btn-glass"
+              >
+                <BookOpen size={16} color="var(--accent)" /> Was sind die wichtigsten Befehle?
+              </button>
+              <button 
+                onClick={() => handleSendChat("Gebe mir eine Programmieraufgabe.")}
+                className="preset-btn btn-glass"
+              >
+                <Info size={16} color="var(--accent)" /> Gebe mir eine Programmieraufgabe.
+              </button>
+              <button 
+                onClick={() => handleSendChat("Warum funktioniert mein Code nicht?")}
+                className="preset-btn btn-glass"
+              >
+                <Bug size={16} color="var(--accent)" /> Warum funktioniert mein Code nicht?
+              </button>
+              <button 
+                onClick={() => handleSendChat("Was könnte man an meinem Code verbessern?")}
+                className="preset-btn btn-glass"
+              >
+                <Wand2 size={16} color="var(--accent)" /> Was könnte man an meinem Code verbessern?
+              </button>
+            </div>
+          )}
           <div className="chat-input" style={{ display: 'flex', marginTop: '16px', gap: '8px' }}>
             <input 
               type="text" 

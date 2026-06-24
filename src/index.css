@@ -120,6 +120,20 @@ body {
   font-size: 22px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.4);
   text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  overflow: hidden;
+}
+
+.calliope-btn::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.15;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  z-index: 10;
 }
 
 .calliope-btn:hover {
@@ -136,8 +150,8 @@ body {
   top: 36%;
   width: 48px;
   height: 48px;
-  background: #3b82f6;
-  border: 3px solid #1e3a8a;
+  background: rgba(59, 130, 246, 0.85);
+  border: 2px solid rgba(255, 255, 255, 0.2);
   transform: translateY(-50%);
 }
 
@@ -146,8 +160,8 @@ body {
   top: 36%;
   width: 48px;
   height: 48px;
-  background: #ef4444;
-  border: 3px solid #7f1d1d;
+  background: rgba(239, 68, 68, 0.85);
+  border: 2px solid rgba(255, 255, 255, 0.2);
   transform: translateY(-50%);
 }
 
@@ -156,8 +170,8 @@ body {
   top: 18%;
   width: 55px;
   height: 55px;
-  background: linear-gradient(135deg, #3b82f6 50%, #ef4444 50%);
-  border: 3px solid #111827;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.85) 50%, rgba(239, 68, 68, 0.85) 50%);
+  border: 2px solid rgba(255, 255, 255, 0.2);
   font-size: 16px;
   transform: none;
 }
@@ -347,16 +361,70 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 20px;
-  border-radius: 10px;
+  padding: 12px 24px;
+  border-radius: 12px;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
   cursor: pointer;
   border: none;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: 'Inter', system-ui, sans-serif;
 }
 
+/* Glassmorphism Base for Buttons */
+.btn-glass {
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  transition: all var(--easing) 0.3s;
+  z-index: 1;
+}
+
+.btn-glass::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.15;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  z-index: -1;
+}
+
+.btn-glass:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.btn-glass.btn-primary {
+  background: rgba(94, 106, 210, 0.2);
+  border-color: rgba(94, 106, 210, 0.3);
+}
+
+.btn-glass.btn-primary:hover {
+  background: rgba(94, 106, 210, 0.3);
+  border-color: rgba(94, 106, 210, 0.4);
+  box-shadow: 0 4px 14px var(--accent-glow);
+}
+
+.btn-glass.btn-danger {
+  background: rgba(220, 38, 38, 0.2);
+  border-color: rgba(220, 38, 38, 0.3);
+}
+
+.btn-glass.btn-danger:hover {
+  background: rgba(220, 38, 38, 0.3);
+  border-color: rgba(220, 38, 38, 0.4);
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
+}
+
+/* Fallback/Legacy button styles overridden just in case */
 .btn-primary {
   background: var(--accent);
   color: white;
@@ -392,16 +460,19 @@ body {
 }
 
 .btn-copy {
-  background: rgba(255,255,255,0.05);
-  color: #94a3b8;
-  padding: 6px 12px;
-  font-size: 12px;
-  border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(0,0,0,0.4);
+  color: #e2e8f0;
+  padding: 8px 16px;
+  font-size: 13px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .btn-copy:hover {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
   color: white;
 }
 
@@ -512,22 +583,13 @@ body {
 
 /* AI Chat Preset Buttons */
 .preset-btn {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--foreground);
-  padding: 10px 16px;
+  padding: 14px 20px;
   border-radius: 12px;
   cursor: pointer;
   text-align: left;
-  font-size: 13px;
+  font-size: 14px;
   transition: all var(--easing) 0.3s;
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.preset-btn:hover {
-  background: rgba(255,255,255,0.1);
-  transform: translateY(-1px);
-  border-color: rgba(255,255,255,0.15);
+  gap: 10px;
 }

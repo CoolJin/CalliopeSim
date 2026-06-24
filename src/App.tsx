@@ -278,21 +278,19 @@ function App() {
               onClick={() => handleSendChat("Was könnte man an meinem Code verbessern?")}
               title="KI nach Tipps fragen"
               disabled={isTyping}
-              style={{ background: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.3)', color: '#818cf8', padding: '6px 10px', borderRadius: '6px', cursor: isTyping ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', transition: 'all 0.2s', opacity: isTyping ? 0.5 : 1 }}
-              onMouseEnter={(e) => { if(!isTyping) { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.2)'; e.currentTarget.style.color = '#c7d2fe'; } }}
-              onMouseLeave={(e) => { if(!isTyping) { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.1)'; e.currentTarget.style.color = '#818cf8'; } }}
+              className="btn-glass btn-glass-primary"
+              style={{ padding: '10px 16px', borderRadius: '10px', cursor: isTyping ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', opacity: isTyping ? 0.5 : 1 }}
             >
-              <Sparkles size={14} /> Verbesserungsvorschläge
+              <Sparkles size={16} /> Verbesserungsvorschläge
             </button>
             <button 
               onClick={handleFormatCode}
               title="Code formatieren"
               disabled={isTyping}
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', padding: '6px 10px', borderRadius: '6px', cursor: isTyping ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', transition: 'all 0.2s', opacity: isTyping ? 0.5 : 1 }}
-              onMouseEnter={(e) => { if(!isTyping) { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = '#fff'; } }}
-              onMouseLeave={(e) => { if(!isTyping) { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = '#94a3b8'; } }}
+              className="btn-glass"
+              style={{ padding: '10px 16px', borderRadius: '10px', cursor: isTyping ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', opacity: isTyping ? 0.5 : 1 }}
             >
-              <AlignLeft size={14} /> Formatieren
+              <AlignLeft size={16} /> Formatieren
             </button>
           </div>
           <CodeMirror
@@ -323,22 +321,22 @@ function App() {
             <div style={{ display: 'flex', gap: '8px' }}>
               {logs.some(l => l.type === 'error') && (
                 <button 
-                  className={`btn btn-copy animate-fade-in ${isConsoleButtonPulsing ? 'animate-error-pulse' : ''}`}
-                  style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.1)' }}
+                  className={`btn-glass btn-glass-danger animate-fade-in ${isConsoleButtonPulsing ? 'animate-error-pulse' : ''}`}
                   onClick={() => handleSendChat("Warum funktioniert mein Code nicht?")}
                   title="KI nach Fehler fragen"
                   disabled={isTyping}
+                  style={{ padding: '10px 16px', borderRadius: '10px', cursor: isTyping ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', opacity: isTyping ? 0.5 : 1 }}
                 >
-                  <Bug size={14} /> KI fragen
+                  <Bug size={16} /> KI fragen
                 </button>
               )}
               <button 
-                className="btn btn-copy" 
+                className="btn-glass" 
                 onClick={(e) => {
                   navigator.clipboard.writeText(logs.map(l => l.text).join('\n'));
                   const btn = e.currentTarget;
                   const originalText = btn.innerHTML;
-                  btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #4ade80"><path d="M20 6 9 17l-5-5"/></svg> Kopiert!';
+                  btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #4ade80"><path d="M20 6 9 17l-5-5"/></svg> Kopiert!';
                   btn.style.color = '#4ade80';
                   setTimeout(() => {
                     btn.innerHTML = originalText;
@@ -346,8 +344,9 @@ function App() {
                   }, 2000);
                 }}
                 title="Konsolenausgabe kopieren"
+                style={{ padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}
               >
-                <Copy size={14} /> Kopieren
+                <Copy size={16} /> Kopieren
               </button>
             </div>
           </div>
@@ -458,7 +457,7 @@ function App() {
               onKeyDown={e => e.key === 'Enter' && handleSendChat()}
               className="chat-input-field"
             />
-            <button className="btn btn-primary btn-pill" onClick={() => handleSendChat()} disabled={isTyping}>Senden</button>
+            <button className="btn btn-glass btn-glass-primary btn-pill" onClick={() => handleSendChat()} disabled={isTyping}>Senden</button>
           </div>
         </div>
       </div>
@@ -473,11 +472,10 @@ function App() {
                   Funktioniert etwas nicht? 
                   <button 
                     onClick={() => handleSendChat("Warum funktioniert mein Code nicht?")}
-                    style={{ background: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.3)', color: '#818cf8', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.2)'; e.currentTarget.style.color = '#c7d2fe'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.1)'; e.currentTarget.style.color = '#818cf8'; }}
+                    className="btn-glass btn-glass-primary"
+                    style={{ padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '8px', transition: 'all 0.2s' }}
                   >
-                    <Bug size={14} /> KI fragen
+                    <Bug size={16} /> KI fragen
                   </button>
                 </div>
               )}
@@ -485,9 +483,9 @@ function App() {
             
             <div className="right-controls">
               {!isRunning ? (
-                <button className="btn btn-primary" onClick={handleRun} disabled={isTyping} title={isTyping ? "Warte auf KI..." : ""}><Play size={16} /> Code ausführen</button>
+                <button className="btn btn-glass btn-glass-primary" onClick={handleRun} disabled={isTyping} title={isTyping ? "Warte auf KI..." : ""}><Play size={16} /> Code ausführen</button>
               ) : (
-                <button className="btn btn-danger" onClick={handleStop}><Square size={16} /> Ausführung stoppen</button>
+                <button className="btn btn-glass btn-glass-danger" onClick={handleStop}><Square size={16} /> Ausführung stoppen</button>
               )}
             </div>
           </div>

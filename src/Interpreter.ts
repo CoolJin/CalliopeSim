@@ -157,15 +157,15 @@ export class CalliopeInterpreter {
           '_uBit.io.P1.setDigitalValue', 'uBit.io.P1.setDigitalValue',
           '_uBit.io.P2.setDigitalValue', 'uBit.io.P2.setDigitalValue',
           '_uBit.io.P3.setDigitalValue', 'uBit.io.P3.setDigitalValue',
+          '_uBit.display.image.setPixelValue', 'uBit.display.image.setPixelValue',
+          '_uBit.display.image.getPixelValue', 'uBit.display.image.getPixelValue',
           'release_fiber',
           '_uBit.init', 'uBit.init',
           '_uBit.sleep', 'uBit.sleep',
           'MicroBitColor'
         ];
         
-        const isSupported = knownSupported.some(name => funcName === name || funcName.startsWith(name)) ||
-                            funcName.includes('setPixelValue') || funcName.includes('setPixel') || funcName.includes('setLED') ||
-                            funcName.includes('getPixelValue') || funcName.includes('getPixel');
+        const isSupported = knownSupported.some(name => funcName === name || funcName.startsWith(name));
                           
         if (!isSupported) {
           const isKnownUnsupported = knownUnsupportedPrefixes.some(prefix => funcName.startsWith(prefix)) || 
@@ -363,7 +363,7 @@ export class CalliopeInterpreter {
       else if (funcName?.startsWith('_uBit.display.clear') || funcName?.startsWith('uBit.display.clear')) {
         this.api.setState({ ledMatrix: Array(5).fill(Array(5).fill(0)) });
       }
-      else if (funcName?.includes('setPixelValue') || funcName?.includes('setPixel') || funcName?.includes('setLED')) {
+      else if (funcName === '_uBit.display.image.setPixelValue' || funcName === 'uBit.display.image.setPixelValue') {
         const x = Math.trunc(Number(args[0]) || 0);
         const y = Math.trunc(Number(args[1]) || 0);
         const value = Number(args[2]) || 0;
@@ -375,7 +375,7 @@ export class CalliopeInterpreter {
           this.api.setState({ ledMatrix: matrix });
         }
       }
-      else if (funcName?.includes('getPixelValue') || funcName?.includes('getPixel')) {
+      else if (funcName === '_uBit.display.image.getPixelValue' || funcName === 'uBit.display.image.getPixelValue') {
         const x = Math.trunc(Number(args[0]) || 0);
         const y = Math.trunc(Number(args[1]) || 0);
         if (x >= 0 && x < 5 && y >= 0 && y < 5) {
@@ -557,7 +557,7 @@ export class CalliopeInterpreter {
       if (funcName === '_uBit.io.P3.getDigitalValue' || funcName === 'uBit.io.P3.getDigitalValue') return this.api.getPinDigital('P3');
 
       // image getPixelValue
-      if (funcName === '_uBit.display.image.getPixelValue' || funcName === 'uBit.display.image.getPixelValue' || funcName === 'getPixelValue' || funcName === 'getPixel') {
+      if (funcName === '_uBit.display.image.getPixelValue' || funcName === 'uBit.display.image.getPixelValue') {
         const x = Math.trunc(Number(args[0]) || 0);
         const y = Math.trunc(Number(args[1]) || 0);
         if (x >= 0 && x < 5 && y >= 0 && y < 5) {

@@ -311,8 +311,8 @@ body {
 
 .cm-editor-wrapper .cm-gutters {
   background: transparent !important;
-  backdrop-filter: blur(28px) !important;
-  -webkit-backdrop-filter: blur(28px) !important;
+  backdrop-filter: blur(36px) !important;
+  -webkit-backdrop-filter: blur(36px) !important;
   border-right: 1px solid var(--border);
 }
 
@@ -385,7 +385,7 @@ body {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   color: white;
   transition: all var(--easing) 0.3s;
   z-index: 1;
@@ -405,29 +405,29 @@ body {
 .btn-glass:hover {
   background: rgba(255, 255, 255, 0.08);
   transform: translateY(-1px);
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
 
 .btn-glass-primary {
   background: rgba(94, 106, 210, 0.15) !important;
-  border-color: rgba(94, 106, 210, 0.6) !important;
+  border-color: rgba(94, 106, 210, 0.1) !important;
 }
 
 .btn-glass-primary:hover {
   background: rgba(94, 106, 210, 0.25) !important;
-  border-color: rgba(114, 126, 230, 0.8) !important;
+  border-color: rgba(114, 126, 230, 0.2) !important;
   box-shadow: 0 4px 14px var(--accent-glow);
 }
 
 .btn-glass-danger {
   background: rgba(220, 38, 38, 0.15) !important;
-  border-color: rgba(220, 38, 38, 0.6) !important;
+  border-color: rgba(220, 38, 38, 0.1) !important;
 }
 
 .btn-glass-danger:hover {
   background: rgba(220, 38, 38, 0.25) !important;
-  border-color: rgba(240, 58, 58, 0.8) !important;
+  border-color: rgba(240, 58, 58, 0.2) !important;
   box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
 }
 
@@ -491,8 +491,8 @@ body {
   border-radius: 12px;
   padding: 16px;
   border: 1px solid rgba(255,255,255,0.05);
-  backdrop-filter: blur(32px);
-  -webkit-backdrop-filter: blur(32px);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
 }
 
 .variables-panel h3 {

@@ -9,7 +9,7 @@ const API_KEYS = [
 ].filter(Boolean);
 
 class GeminiService {
-  public async sendMessage(userMessage: string, history: any[], currentCode: string, consoleOutput: string): Promise<{ text: string; modelLevel: number }> {
+  public async sendMessage(userMessage: string, history: any[], currentCode: string, consoleOutput: string): Promise<{ text: string; remainingCapacity: number }> {
     const numberedCode = currentCode.split('\n').map((line, idx) => `${idx + 1}: ${line}`).join('\n');
     
     const systemInstruction = `Du bist ein C++ Lernassistent für ein Informatikprojekt. 
@@ -50,11 +50,11 @@ Du kannst diese Befehle dem Nutzer jederzeit vorschlagen, wenn er danach fragt o
     // Modelle absteigend nach Qualität sortiert
     const MODELS = [
       "gemini-3.5-flash",
-      "gemini-3-flash",
-      "gemini-2.5-flash"
+      "gemini-3-flash"
     ];
 
     let lastError: any = null;
+    let attemptCount = 0;
 
     // Wir probieren zuerst das beste Modell über alle API-Keys hinweg, 
     // dann das zweitbeste über alle Keys, usw.
@@ -86,16 +86,21 @@ Du kannst diese Befehle dem Nutzer jederzeit vorschlagen, wenn er danach fragt o
 
           const chat = model.startChat({
             history: formattedHistory,
-            generationConfig: { temperature: 0.7 }
+            generationConfig: {
+              maxOutputTokens: 1000,
+              temperature: 0.2,
+            },
           });
 
           const result = await chat.sendMessage(userMessage);
-          console.log(`Successfully used model ${modelName} (Level ${modelIndex}) with API Key ${keyIndex + 1}`);
-          return { text: result.response.text(), modelLevel: modelIndex };
+          const remainingCapacity = 100 - (attemptCount * 10);
+          console.log(`Successfully used model ${modelName} with API Key ${keyIndex + 1}. Capacity: ${remainingCapacity}%`);
+          return { text: result.response.text(), remainingCapacity };
           
         } catch (error: any) {
           console.warn(`Model ${modelName} failed on API Key ${keyIndex + 1}:`, error.message || error);
           lastError = error;
+          attemptCount++;
           // Bei jedem Fehler probieren wir den nächsten Key oder das nächste Modell
           continue;
         }

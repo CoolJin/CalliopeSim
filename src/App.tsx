@@ -104,7 +104,7 @@ function App() {
   const [chatInput, setChatInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showPresets, setShowPresets] = useState(true);
-  const [activeModelLevel, setActiveModelLevel] = useState(0);
+  const [apiCapacity, setApiCapacity] = useState(100);
   const [showPostRunPrompt, setShowPostRunPrompt] = useState(false);
   const [isConsoleButtonPulsing, setIsConsoleButtonPulsing] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -259,9 +259,9 @@ function App() {
 
     try {
       const consoleOutput = logs.map(l => l.text).join('\n');
-      const { text: responseText, modelLevel } = await geminiService.sendMessage(userMsg, chatHistory, code, consoleOutput);
+      const { text: responseText, remainingCapacity } = await geminiService.sendMessage(userMsg, chatHistory, code, consoleOutput);
       
-      setActiveModelLevel(modelLevel);
+      setApiCapacity(remainingCapacity);
       let response = responseText;
 
       if (view) {
@@ -430,18 +430,19 @@ function App() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <h3 style={{ fontSize: '16px', color: '#6366F1', margin: 0, textShadow: '0 0 10px rgba(99, 102, 241, 0.3)' }}>KI-Assistent</h3>
             <div className="api-quota-bar" title="Modell-Qualität / Server-Ressourcen" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ display: 'flex', gap: '4px' }}>
-                {[0, 1, 2].map(idx => (
-                  <div key={idx} style={{
-                    width: '18px', height: '6px', borderRadius: '3px',
-                    background: idx < (3 - activeModelLevel) ? '#10b981' : 'rgba(255,255,255,0.1)',
-                    boxShadow: idx < (3 - activeModelLevel) ? '0 0 8px rgba(16, 185, 129, 0.4)' : 'none',
-                    transition: 'all 0.3s ease'
-                  }} />
-                ))}
+              <div style={{ 
+                width: '60px', height: '6px', background: 'rgba(255,255,255,0.1)', 
+                borderRadius: '3px', overflow: 'hidden' 
+              }}>
+                <div style={{ 
+                  width: `${apiCapacity}%`, height: '100%', 
+                  background: apiCapacity > 50 ? '#10b981' : apiCapacity > 20 ? '#f59e0b' : '#ef4444', 
+                  boxShadow: `0 0 8px ${apiCapacity > 50 ? 'rgba(16, 185, 129, 0.4)' : apiCapacity > 20 ? 'rgba(245, 158, 11, 0.4)' : 'rgba(239, 68, 68, 0.4)'}`,
+                  transition: 'width 0.4s ease, background 0.4s ease' 
+                }} />
               </div>
-              <span style={{ fontSize: '12px', color: '#94a3b8', fontFamily: 'Fira Code, monospace' }}>
-                {activeModelLevel === 0 ? '100%' : activeModelLevel === 1 ? '66%' : activeModelLevel === 2 ? '33%' : '0%'}
+              <span style={{ fontSize: '12px', color: '#94a3b8', fontFamily: 'Fira Code, monospace', minWidth: '32px', textAlign: 'right' }}>
+                {apiCapacity}%
               </span>
             </div>
           </div>

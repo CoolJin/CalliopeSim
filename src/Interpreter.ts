@@ -386,12 +386,15 @@ export class CalliopeInterpreter {
         const m = this.microBitName;
         if (funcName?.startsWith(`${m}.display.scroll`)) {
           await this.simulateDisplayScroll(args[0], execId);
+          return;
         } 
         else if (funcName?.startsWith(`${m}.display.print`)) {
           await this.simulateDisplayPrint(args[0]);
+          return;
         }
         else if (funcName?.startsWith(`${m}.display.clear`)) {
           this.api.setState({ ledMatrix: Array(5).fill(Array(5).fill(0)) });
+          return;
         }
         else if (funcName === `${m}.display.image.setPixelValue`) {
           const x = Math.trunc(Number(args[0]) || 0);
@@ -404,6 +407,7 @@ export class CalliopeInterpreter {
             matrix[y][x] = value > 255 ? 255 : (value < 0 ? 0 : value);
             this.api.setState({ ledMatrix: matrix });
           }
+          return;
         }
         else if (funcName?.startsWith(`${m}.rgb.setColour`)) {
           if (argumentsNode && argumentsNode.text.includes('MicroBitColor')) {
@@ -413,43 +417,47 @@ export class CalliopeInterpreter {
               this.api.setState({ rgbLed: [colorVals[0], colorVals[1], colorVals[2]] });
             }
           }
+          return;
         }
         else if (funcName?.startsWith(`${m}.rgb.off`)) {
           this.api.setState({ rgbLed: [0, 0, 0] });
+          return;
         }
         else if (funcName === `${m}.init`) {
-          // Ignore, boilerplate
+          return;
         }
         else if (funcName === `${m}.sleep`) {
           await this.api.sleep(args[0] || 100);
+          return;
         }
         // Pins setDigitalValue
         else if (funcName === `${m}.io.P0.setDigitalValue`) {
           this.api.setPinDigital('P0', Number(args[0]) || 0);
+          return;
         }
         else if (funcName === `${m}.io.P1.setDigitalValue`) {
           this.api.setPinDigital('P1', Number(args[0]) || 0);
+          return;
         }
         else if (funcName === `${m}.io.P2.setDigitalValue`) {
           this.api.setPinDigital('P2', Number(args[0]) || 0);
+          return;
         }
         else if (funcName === `${m}.io.P3.setDigitalValue`) {
           this.api.setPinDigital('P3', Number(args[0]) || 0);
+          return;
         }
       }
       
       if (funcName === 'release_fiber') {
-        // Ignore, boilerplate
+        return;
       }
       else if (funcName?.startsWith('MicroBitColor')) {
-        // Constructor mock
         return 0;
       }
       else {
         throw new Error(`Unerwartete Funktion während der Ausführung: ${funcName}`);
       }
-      
-      return;
     }
 
     return this.evaluateExpression(node);

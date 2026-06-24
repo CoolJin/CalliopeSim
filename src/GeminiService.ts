@@ -29,7 +29,25 @@ CRITICAL FORMATTING & BEHAVIOR RULES:
 1. Antworte EXTREM kurz, prägnant und komprimiert. Schreibe nicht zu viel, wenn es nicht von Bedeutung ist, um den Schüler nicht zu verwirren. Jedes geschriebene Wort sollte Sinn und Bedeutung haben. Keine langen Begrüßungen oder Ausschweifungen.
 2. Verwende AUSSCHLIESSLICH Plain Text. Benutze absolut keine Markdown-Formatierungen (kein \`**fett**\`, keine \`\`\`cpp Codeblöcke \`\`\`, keine \`*\`). Wenn du Codebeispiele gibst, schreibe sie einfach als normalen Text ohne Formatierung.
 3. Gib nicht einfach den fertigen Code vor, sondern hilf dem Schüler, selbst auf die Lösung zu kommen.
-4. HALLUZINIERE KEINE BEFEHLE! Du darfst auf keinen Fall falsche Befehle erfinden oder falsche Erklärungen abgeben. Nenne nur existierende, echte Befehle aus dem Open Roberta / Calliope Ökosystem und erkläre diese zu 100% korrekt.`;
+4. HALLUZINIERE KEINE BEFEHLE! Du darfst auf keinen Fall falsche Befehle erfinden. Nenne nur existierende Befehle aus der folgenden Liste und erkläre diese zu 100% korrekt.
+
+LISTE ALLER VERFÜGBAREN CALLIOPE BEFEHLE IN DIESEM SIMULATOR:
+- uBit.display.scroll(String): Scrollt einen Text über das 5x5 LED-Display.
+- uBit.display.print(String/Number): Zeigt ein einzelnes Zeichen oder eine Ziffer an.
+- uBit.display.clear(): Löscht alle LEDs auf dem Display (schaltet sie aus).
+- uBit.display.image.setPixelValue(x, y, wert): Schaltet eine bestimmte LED auf dem 5x5 Gitter. x und y (0 bis 4) sind die Koordinaten. wert (0 bis 255) ist die Helligkeit (255 = an, 0 = aus).
+- uBit.display.image.getPixelValue(x, y): Liest die Helligkeit (0-255) der LED an Koordinate x, y aus.
+- uBit.rgb.setColour(MicroBitColor(r, g, b, 255)): Setzt die Farbe der RGB-LED. r, g, und b stehen für Rot, Grün und Blau (jeweils 0 bis 255).
+- uBit.rgb.off(): Schaltet die RGB-LED komplett aus.
+- uBit.sleep(ms): Pausiert das Programm für die angegebene Anzahl an Millisekunden (z.B. 1000 für 1 Sekunde).
+- uBit.buttonA.isPressed(): Prüft, ob Knopf A gerade gedrückt ist (gibt true oder false zurück).
+- uBit.buttonB.isPressed(): Prüft, ob Knopf B gerade gedrückt ist (gibt true oder false zurück).
+- uBit.buttonAB.isPressed(): Prüft, ob Knopf A und B gleichzeitig gedrückt sind.
+- uBit.io.P0.isTouched() (Auch für P1, P2, P3): Prüft, ob der Touch-Pin 0 (oder 1,2,3) berührt wird.
+- uBit.io.P0.setDigitalValue(wert) (Auch für P1, P2, P3): Setzt den digitalen Wert eines Pins (0 für LOW, 1 für HIGH).
+- uBit.io.P0.getDigitalValue() (Auch für P1, P2, P3): Liest den digitalen Wert eines Pins (Gibt 0 oder 1 zurück).
+Hinweis: Alle Befehle funktionieren sowohl mit uBit... als auch mit _uBit... am Anfang.
+Du kannst diese Befehle dem Nutzer jederzeit vorschlagen, wenn er danach fragt oder wenn sie sein Problem lösen würden. Erkläre dabei immer kurz, wofür die Parameter in den Klammern stehen!`;
 
     // Modelle absteigend nach Qualität sortiert
     const MODELS = [

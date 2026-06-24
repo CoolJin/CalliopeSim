@@ -269,7 +269,7 @@ function App() {
 
   return (
     <div className="app-container floating-layout">
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, opacity: 0.2, mixBlendMode: 'screen', pointerEvents: 'none' }}>
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, opacity: 0.3, pointerEvents: 'none' }}>
         <Silk color="#ffffff" speed={2} />
       </div>
       <div className="left-panel" style={{ position: 'relative' }}>

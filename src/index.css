@@ -120,8 +120,8 @@ body {
   font-size: 22px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.4);
   text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-  backdrop-filter: blur(32px);
   -webkit-backdrop-filter: blur(32px);
+  backdrop-filter: blur(32px);
   border: 1px solid var(--border);
 }
 
@@ -289,8 +289,8 @@ body {
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border);
-  backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
+  backdrop-filter: blur(30px);
 }
 
 .editor-panel {
@@ -605,6 +605,6 @@ body {
 /* Unified inner glass box styling for consistent tint and blur */
 .inner-glass-box, .variables-panel {
   background: rgba(0, 0, 0, 0.2) !important;
-  backdrop-filter: blur(32px) !important;
   -webkit-backdrop-filter: blur(32px) !important;
+  backdrop-filter: blur(32px) !important;
 }

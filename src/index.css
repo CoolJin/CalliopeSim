@@ -1,11 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 :root {
+  --bg-deep: #020203;
+  --bg-base: #050506;
+  --bg-elevated: #0a0a0c;
+  --surface: rgba(255, 255, 255, 0.05);
+  --foreground: #EDEDEF;
+  --foreground-muted: #8A8F98;
+  --accent: #5E6AD2;
+  --accent-glow: rgba(94, 106, 210, 0.2);
+  --border: rgba(255, 255, 255, 0.08);
+  --radius: 16px;
+  --easing: cubic-bezier(0.16, 1, 0.3, 1);
+
   font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
   color-scheme: dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #0f172a; /* Tailwind Slate 900 */
+  color: var(--foreground);
+  background-color: var(--bg-deep);
 
   font-synthesizes: none;
   text-rendering: optimizeLegibility;
@@ -25,7 +39,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
-  background: radial-gradient(circle at top, #1e293b 0%, #0f172a 100%);
+  background: linear-gradient(to bottom, #0a0a0f, var(--bg-deep));
 }
 
 #root {
@@ -195,14 +209,14 @@ body {
 .pin-1 { bottom: 10%; left: 28%; transform: translate(-50%, 50%); }
 .pin-2 { bottom: 10%; right: 28%; transform: translate(50%, 50%); }
 
-/* Floating Layout System (OLED Dark Mode) */
+/* Floating Layout System (Modern Dark Cinema) */
 .floating-layout {
   display: flex;
   height: 100vh;
   width: 100vw;
   padding: 24px;
   gap: 24px;
-  background: #0B0E14; /* Deep OLED-friendly black/blue */
+  background: transparent;
   overflow: hidden;
 }
 
@@ -232,19 +246,19 @@ body {
   flex: 1;
   padding: 14px 20px;
   border-radius: 50px;
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid var(--border);
   background: rgba(0,0,0,0.3);
   color: white;
   outline: none;
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 14px;
-  transition: all 0.2s;
+  transition: all var(--easing) 0.3s;
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .chat-input-field:focus {
-  border-color: #6366F1;
-  box-shadow: 0 0 10px rgba(99, 102, 241, 0.3), inset 0 2px 4px rgba(0,0,0,0.2);
+  border-color: var(--accent);
+  box-shadow: 0 0 10px var(--accent-glow), inset 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .btn-pill {
@@ -253,13 +267,15 @@ body {
 }
 
 .floating-panel {
-  background: #131722;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.05);
+  background: var(--bg-elevated);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 1px var(--border);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .editor-panel {
@@ -304,7 +320,7 @@ body {
   flex-direction: column;
   align-items: center;
   position: relative;
-  background: radial-gradient(circle at center, #171939 0%, #131722 100%);
+  background: radial-gradient(circle at center, rgba(94, 106, 210, 0.05) 0%, transparent 100%);
 }
 
 .calliope-board-wrapper {
@@ -342,26 +358,28 @@ body {
 }
 
 .btn-primary {
-  background: #7C3AED;
+  background: var(--accent);
   color: white;
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);
+  box-shadow: 0 4px 14px var(--accent-glow);
+  transition: all var(--easing) 0.3s;
 }
 
 .btn-primary:hover {
-  background: #6D28D9;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5);
+  filter: brightness(1.2);
+  transform: scale(0.97);
+  box-shadow: 0 6px 20px var(--accent-glow);
 }
 
 .btn-danger {
   background: #DC2626;
   color: white;
   box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
+  transition: all var(--easing) 0.3s;
 }
 
 .btn-danger:hover {
   background: #B91C1C;
-  transform: translateY(-2px);
+  transform: scale(0.97);
   box-shadow: 0 6px 20px rgba(220, 38, 38, 0.5);
 }
 
@@ -490,4 +508,26 @@ body {
 
 .animate-error-pulse {
   animation: error-pulse 2s infinite !important;
+}
+
+/* AI Chat Preset Buttons */
+.preset-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  padding: 10px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  font-size: 13px;
+  transition: all var(--easing) 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.preset-btn:hover {
+  background: rgba(255,255,255,0.1);
+  transform: translateY(-1px);
+  border-color: rgba(255,255,255,0.15);
 }

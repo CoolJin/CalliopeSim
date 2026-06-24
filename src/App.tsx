@@ -379,43 +379,33 @@ function App() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px' }}>
                 <button 
                   onClick={() => handleSendChat("Wie fange ich an?")}
-                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '13px', transition: 'background 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                  className="preset-btn"
                 >
-                  <Rocket size={16} color="#818cf8" /> Wie fange ich an?
+                  <Rocket size={16} color="var(--accent)" /> Wie fange ich an?
                 </button>
                 <button 
                   onClick={() => handleSendChat("Was sind die wichtigsten Befehle?")}
-                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '13px', transition: 'background 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                  className="preset-btn"
                 >
-                  <BookOpen size={16} color="#34d399" /> Was sind die wichtigsten Befehle?
+                  <BookOpen size={16} color="var(--accent)" /> Was sind die wichtigsten Befehle?
                 </button>
                 <button 
                   onClick={() => handleSendChat("Gebe mir eine Programmieraufgabe.")}
-                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '13px', transition: 'background 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                  className="preset-btn"
                 >
-                  <Info size={16} color="#60a5fa" /> Gebe mir eine Programmieraufgabe.
+                  <Info size={16} color="var(--accent)" /> Gebe mir eine Programmieraufgabe.
                 </button>
                 <button 
                   onClick={() => handleSendChat("Warum funktioniert mein Code nicht?")}
-                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '13px', transition: 'background 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                  className="preset-btn"
                 >
-                  <Bug size={16} color="#f87171" /> Warum funktioniert mein Code nicht?
+                  <Bug size={16} color="var(--accent)" /> Warum funktioniert mein Code nicht?
                 </button>
                 <button 
                   onClick={() => handleSendChat("Was könnte man an meinem Code verbessern?")}
-                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', textAlign: 'left', fontSize: '13px', transition: 'background 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                  className="preset-btn"
                 >
-                  <Wand2 size={16} color="#fbbf24" /> Was könnte man an meinem Code verbessern?
+                  <Wand2 size={16} color="var(--accent)" /> Was könnte man an meinem Code verbessern?
                 </button>
               </div>
             )}
@@ -425,15 +415,15 @@ function App() {
                 marginBottom: '12px', 
                 padding: '10px 14px', 
                 borderRadius: '12px',
-                background: msg.role === 'user' ? 'rgba(99, 102, 241, 0.1)' : 'rgba(255, 255, 255, 0.05)',
-                border: msg.role === 'user' ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid rgba(255, 255, 255, 0.05)',
-                color: msg.role === 'user' ? '#e0e7ff' : '#cbd5e1',
+                background: msg.role === 'user' ? 'rgba(94, 106, 210, 0.1)' : 'var(--surface)',
+                border: msg.role === 'user' ? '1px solid rgba(94, 106, 210, 0.3)' : '1px solid var(--border)',
+                color: msg.role === 'user' ? '#e0e7ff' : 'var(--foreground)',
                 alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
                 whiteSpace: 'pre-wrap',
                 fontFamily: msg.role === 'model' ? 'Inter, sans-serif' : 'inherit',
-                transition: 'all 0.3s'
+                transition: 'all var(--easing) 0.3s'
               }}>
-                <strong style={{ display: 'block', marginBottom: '4px', color: msg.role === 'user' ? '#818cf8' : '#38bdf8', fontSize: '12px' }}>
+                <strong style={{ display: 'block', marginBottom: '4px', color: msg.role === 'user' ? 'var(--accent)' : '#38bdf8', fontSize: '12px' }}>
                   {msg.role === 'user' ? 'Du' : 'KI Assistent'}
                 </strong>
                 {msg.text}

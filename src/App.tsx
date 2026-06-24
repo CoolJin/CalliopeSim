@@ -274,7 +274,7 @@ function App() {
           if (!isNaN(lineNum) && lineNum >= 1 && lineNum <= view.state.doc.lines) {
             linesToMark.push(lineNum);
           }
-          return '';
+          return lineNumStr;
         });
 
         if (linesToMark.length > 0) {

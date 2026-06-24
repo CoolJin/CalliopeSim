@@ -211,7 +211,7 @@ function App() {
   const handleRestart = async () => {
     setIsRestarting(true);
     handleStop();
-    setLogs(prev => [...prev, { id: Date.now(), text: 'System wird neu gestartet...', type: 'info' }]);
+    setLogs(prev => [...prev, { id: Date.now(), text: 'Simulation wird neu gestartet...', type: 'info' }]);
     
     // Kurze Verzögerung, damit State sicher reset ist + Animation sichtbar
     setTimeout(async () => {

@@ -10,9 +10,11 @@ export interface CalliopeAPI {
   setState: (state: Partial<CalliopeState>) => void;
   getButtonA: () => boolean;
   getButtonB: () => boolean;
+  getPinTouched: (pin: 'P0'|'P1'|'P2'|'P3') => boolean;
+  getPinDigital: (pin: 'P0'|'P1'|'P2'|'P3') => number;
+  setPinDigital: (pin: 'P0'|'P1'|'P2'|'P3', value: number) => void;
   sleep: (ms: number) => Promise<void>;
   log: (msg: string, type?: 'info' | 'error' | 'success') => void;
-  // This helps us abort execution if the user clicks "stop"
   checkAbort: () => void;
 }
 
@@ -120,39 +122,44 @@ export class CalliopeInterpreter {
       
       if (funcName) {
         const knownUnsupportedPrefixes = [
-          '_uBit.accelerometer.',
-          '_uBit.compass.',
-          '_uBit.thermometer.',
-          '_uBit.soundmotor.',
-          '_uBit.serial.',
-          '_uBit.radio.',
-          '_uBit.i2c.',
-          '_uBit.spi.',
-          '_uBit.messageBus.',
-          '_uBit.storage.',
-          '_uBit.systemTime',
-          '_uBit.random'
+          '_uBit.accelerometer.', 'uBit.accelerometer.',
+          '_uBit.compass.', 'uBit.compass.',
+          '_uBit.thermometer.', 'uBit.thermometer.',
+          '_uBit.soundmotor.', 'uBit.soundmotor.',
+          '_uBit.serial.', 'uBit.serial.',
+          '_uBit.radio.', 'uBit.radio.',
+          '_uBit.i2c.', 'uBit.i2c.',
+          '_uBit.spi.', 'uBit.spi.',
+          '_uBit.messageBus.', 'uBit.messageBus.',
+          '_uBit.storage.', 'uBit.storage.',
+          '_uBit.systemTime', 'uBit.systemTime',
+          '_uBit.random', 'uBit.random'
         ];
         
         const knownSupported = [
-          '_uBit.display.scroll',
-          '_uBit.display.print',
-          '_uBit.display.clear',
-          '_uBit.display.image.',
-          '_uBit.display.setBrightness',
-          '_uBit.display.getBrightness',
-          '_uBit.rgb.setColour',
-          '_uBit.rgb.off',
-          '_uBit.buttonA.isPressed',
-          '_uBit.buttonB.isPressed',
-          '_uBit.buttonAB.isPressed',
-          '_uBit.io.P12.',
-          '_uBit.io.P0.',
-          '_uBit.io.P1.',
-          '_uBit.io.P16.',
+          '_uBit.display.scroll', 'uBit.display.scroll',
+          '_uBit.display.print', 'uBit.display.print',
+          '_uBit.display.clear', 'uBit.display.clear',
+          '_uBit.rgb.setColour', 'uBit.rgb.setColour',
+          '_uBit.rgb.off', 'uBit.rgb.off',
+          '_uBit.buttonA.isPressed', 'uBit.buttonA.isPressed',
+          '_uBit.buttonB.isPressed', 'uBit.buttonB.isPressed',
+          '_uBit.buttonAB.isPressed', 'uBit.buttonAB.isPressed',
+          '_uBit.io.P0.isTouched', 'uBit.io.P0.isTouched',
+          '_uBit.io.P1.isTouched', 'uBit.io.P1.isTouched',
+          '_uBit.io.P2.isTouched', 'uBit.io.P2.isTouched',
+          '_uBit.io.P3.isTouched', 'uBit.io.P3.isTouched',
+          '_uBit.io.P0.getDigitalValue', 'uBit.io.P0.getDigitalValue',
+          '_uBit.io.P1.getDigitalValue', 'uBit.io.P1.getDigitalValue',
+          '_uBit.io.P2.getDigitalValue', 'uBit.io.P2.getDigitalValue',
+          '_uBit.io.P3.getDigitalValue', 'uBit.io.P3.getDigitalValue',
+          '_uBit.io.P0.setDigitalValue', 'uBit.io.P0.setDigitalValue',
+          '_uBit.io.P1.setDigitalValue', 'uBit.io.P1.setDigitalValue',
+          '_uBit.io.P2.setDigitalValue', 'uBit.io.P2.setDigitalValue',
+          '_uBit.io.P3.setDigitalValue', 'uBit.io.P3.setDigitalValue',
           'release_fiber',
-          '_uBit.init',
-          '_uBit.sleep',
+          '_uBit.init', 'uBit.init',
+          '_uBit.sleep', 'uBit.sleep',
           'MicroBitColor'
         ];
         
@@ -162,9 +169,10 @@ export class CalliopeInterpreter {
                           
         if (!isSupported) {
           const isKnownUnsupported = knownUnsupportedPrefixes.some(prefix => funcName.startsWith(prefix)) || 
-                                     funcName.startsWith('_uBit.display.') || 
-                                     funcName.startsWith('_uBit.button') ||
-                                     funcName.startsWith('_uBit.rgb.');
+                                     funcName.startsWith('_uBit.display.') || funcName.startsWith('uBit.display.') || 
+                                     funcName.startsWith('_uBit.button') || funcName.startsWith('uBit.button') ||
+                                     funcName.startsWith('_uBit.rgb.') || funcName.startsWith('uBit.rgb.') ||
+                                     funcName.startsWith('_uBit.io.') || funcName.startsWith('uBit.io.');
           if (isKnownUnsupported) {
             errors.push(`Nicht unterstützt: Die Funktion '${funcName}' existiert auf dem echten Calliope, wird aber im Simulator aktuell nicht unterstützt (Zeile ${node.startPosition.row + 1}).`);
           } else {
@@ -240,6 +248,56 @@ export class CalliopeInterpreter {
     }
   }
 
+  private async walkForStatement(node: SyntaxNode, execId: number) {
+    const initializer = node.childForFieldName('initializer');
+    const conditionNode = node.childForFieldName('condition');
+    const updateNode = node.childForFieldName('update');
+    const body = node.childForFieldName('body');
+
+    if (initializer) {
+      if (initializer.type === 'declaration') {
+        this.walkDeclaration(initializer);
+      } else if (initializer.type === 'expression_statement' && initializer.namedChildren.length > 0) {
+        await this.walkExpression(initializer.namedChildren[0], execId);
+      } else {
+        await this.walkExpression(initializer, execId);
+      }
+    }
+
+    let maxIters = 10000;
+    while (maxIters-- > 0) {
+      if (this.currentExecutionId !== execId) throw new Error('ABORTED');
+      
+      if (conditionNode) {
+        let condVal = true;
+        if (conditionNode.type === 'expression_statement' && conditionNode.namedChildren.length > 0) {
+          condVal = this.evaluateExpression(conditionNode.namedChildren[0]);
+        } else {
+          condVal = this.evaluateExpression(conditionNode);
+        }
+        if (!condVal) break;
+      }
+
+      if (body) {
+        if (body.type === 'compound_statement') {
+          await this.walkCompoundStatement(body, execId);
+        } else {
+          await this.walkStatement(body, execId);
+        }
+      }
+
+      if (updateNode) {
+        if (updateNode.type === 'expression_statement' && updateNode.namedChildren.length > 0) {
+           await this.walkExpression(updateNode.namedChildren[0], execId);
+        } else {
+           await this.walkExpression(updateNode, execId);
+        }
+      }
+
+      await this.api.sleep(1);
+    }
+  }
+
   private async walkIfStatement(node: SyntaxNode, execId: number) {
     const conditionNode = node.childForFieldName('condition');
     const consequence = node.childForFieldName('consequence');
@@ -284,44 +342,6 @@ export class CalliopeInterpreter {
     }
   }
 
-  private async walkForStatement(node: SyntaxNode, execId: number) {
-    const initializer = node.childForFieldName('initializer');
-    const condition = node.childForFieldName('condition');
-    const update = node.childForFieldName('update');
-    const body = node.childForFieldName('body');
-
-    if (initializer) {
-      if (initializer.type === 'declaration') {
-        this.walkDeclaration(initializer);
-      } else if (initializer.type === 'expression_statement') {
-        await this.walkExpression(initializer.namedChildren[0], execId);
-      }
-    }
-
-    let maxIters = 10000;
-    while (maxIters-- > 0) {
-      if (this.currentExecutionId !== execId) throw new Error('ABORTED');
-      
-      if (condition && condition.namedChildren[0]) {
-        if (!this.evaluateExpression(condition.namedChildren[0])) break;
-      }
-      
-      if (body) {
-        if (body.type === 'compound_statement') {
-          await this.walkCompoundStatement(body, execId);
-        } else {
-          await this.walkStatement(body, execId);
-        }
-      }
-
-      if (update) {
-        this.evaluateExpression(update);
-      }
-      
-      await this.api.sleep(1);
-    }
-  }
-
   private async walkExpression(node: SyntaxNode, execId: number): Promise<any> {
     if (!node) return;
     
@@ -334,13 +354,13 @@ export class CalliopeInterpreter {
       const args = argumentsNode?.namedChildren.map(arg => this.evaluateExpression(arg)) || [];
 
       // Open Roberta specific maps
-      if (funcName?.startsWith('_uBit.display.scroll')) {
+      if (funcName?.startsWith('_uBit.display.scroll') || funcName?.startsWith('uBit.display.scroll')) {
         await this.simulateDisplayScroll(args[0], execId);
       } 
-      else if (funcName?.startsWith('_uBit.display.print')) {
+      else if (funcName?.startsWith('_uBit.display.print') || funcName?.startsWith('uBit.display.print')) {
         await this.simulateDisplayPrint(args[0]);
       }
-      else if (funcName?.startsWith('_uBit.display.clear')) {
+      else if (funcName?.startsWith('_uBit.display.clear') || funcName?.startsWith('uBit.display.clear')) {
         this.api.setState({ ledMatrix: Array(5).fill(Array(5).fill(0)) });
       }
       else if (funcName?.includes('setPixelValue') || funcName?.includes('setPixel') || funcName?.includes('setLED')) {
@@ -364,7 +384,7 @@ export class CalliopeInterpreter {
         }
         return 0;
       }
-      else if (funcName?.startsWith('_uBit.rgb.setColour')) {
+      else if (funcName?.startsWith('_uBit.rgb.setColour') || funcName?.startsWith('uBit.rgb.setColour')) {
         if (argumentsNode && argumentsNode.text.includes('MicroBitColor')) {
           const colorArgsMatch = argumentsNode.text.match(/MicroBitColor\((.*?)\)/);
           if (colorArgsMatch) {
@@ -373,29 +393,27 @@ export class CalliopeInterpreter {
           }
         }
       }
-      else if (funcName?.startsWith('_uBit.rgb.off')) {
+      else if (funcName?.startsWith('_uBit.rgb.off') || funcName?.startsWith('uBit.rgb.off')) {
         this.api.setState({ rgbLed: [0, 0, 0] });
       }
-      else if (funcName?.startsWith('_uBit.io.')) {
-        if (funcName.includes('getDigitalValue') || funcName.includes('getAnalogValue') || funcName.includes('isTouched') || funcName.includes('readPulse')) {
-          return 0; // Stub for missing visual sensors
-        }
-        if (funcName.includes('setDigitalValue') || funcName.includes('setAnalogValue')) {
-          // Just log the output since we have no visual pins
-          this.api.log(`Pin Output: ${funcName} = ${args[0]}`, 'info');
-        }
-      }
-      else if (funcName?.startsWith('_uBit.display.setBrightness')) {
-        this.api.log(`Display-Helligkeit auf ${args[0]} gesetzt`, 'info');
-      }
-      else if (funcName?.startsWith('_uBit.display.getBrightness')) {
-        return 255;
-      }
-      else if (funcName === 'release_fiber' || funcName === '_uBit.init') {
+      else if (funcName === 'release_fiber' || funcName === '_uBit.init' || funcName === 'uBit.init') {
         // Ignore, boilerplate
       }
-      else if (funcName === '_uBit.sleep') {
+      else if (funcName === '_uBit.sleep' || funcName === 'uBit.sleep') {
         await this.api.sleep(args[0] || 100);
+      }
+      // Pins setDigitalValue
+      else if (funcName === '_uBit.io.P0.setDigitalValue' || funcName === 'uBit.io.P0.setDigitalValue') {
+        this.api.setPinDigital('P0', Number(args[0]) || 0);
+      }
+      else if (funcName === '_uBit.io.P1.setDigitalValue' || funcName === 'uBit.io.P1.setDigitalValue') {
+        this.api.setPinDigital('P1', Number(args[0]) || 0);
+      }
+      else if (funcName === '_uBit.io.P2.setDigitalValue' || funcName === 'uBit.io.P2.setDigitalValue') {
+        this.api.setPinDigital('P2', Number(args[0]) || 0);
+      }
+      else if (funcName === '_uBit.io.P3.setDigitalValue' || funcName === 'uBit.io.P3.setDigitalValue') {
+        this.api.setPinDigital('P3', Number(args[0]) || 0);
       }
       else if (funcName?.startsWith('MicroBitColor')) {
         // Constructor mock
@@ -429,31 +447,10 @@ export class CalliopeInterpreter {
     }
     
     if (node.type === 'identifier') {
-      if (node.text === 'cout') return '__COUT__';
-      if (node.text === 'endl') return '__ENDL__';
       if (this.variables[node.text] !== undefined) {
         return this.variables[node.text];
       }
       throw new Error(`Variable '${node.text}' is not defined`);
-    }
-
-    if (node.type === 'update_expression') {
-      const argument = node.childForFieldName('argument');
-      const operator = node.text.includes('++') ? '++' : '--';
-      const isPrefix = node.text.startsWith(operator);
-      
-      if (argument && argument.type === 'identifier') {
-        const name = argument.text;
-        let val = this.variables[name];
-        if (val === undefined) throw new Error(`Variable '${name}' is not defined`);
-        
-        const oldVal = val;
-        val = operator === '++' ? val + 1 : val - 1;
-        this.variables[name] = val;
-        this.api.setState({ variables: { ...this.variables } });
-        
-        return isPrefix ? val : oldVal;
-      }
     }
 
     if (node.type === 'assignment_expression') {
@@ -467,10 +464,56 @@ export class CalliopeInterpreter {
       }
     }
 
-    if (node.type === 'binary_expression') {
-      const left = this.evaluateExpression(node.childForFieldName('left') as SyntaxNode);
-      const right = this.evaluateExpression(node.childForFieldName('right') as SyntaxNode);
+    if (node.type === 'unary_expression') {
       const operator = node.childForFieldName('operator')?.text;
+      const operand = this.evaluateExpression(node.childForFieldName('argument') as SyntaxNode);
+      if (operator === '!') return !operand;
+      if (operator === '-') return -operand;
+      if (operator === '+') return +operand;
+    }
+
+    if (node.type === 'update_expression') {
+      const argument = node.childForFieldName('argument');
+      if (argument && argument.type === 'identifier') {
+        let val = this.variables[argument.text] || 0;
+        if (node.text.endsWith('++')) {
+           this.variables[argument.text] = val + 1;
+           this.api.setState({ variables: { ...this.variables } });
+           return val;
+        } else if (node.text.startsWith('++')) {
+           this.variables[argument.text] = val + 1;
+           this.api.setState({ variables: { ...this.variables } });
+           return val + 1;
+        } else if (node.text.endsWith('--')) {
+           this.variables[argument.text] = val - 1;
+           this.api.setState({ variables: { ...this.variables } });
+           return val;
+        } else if (node.text.startsWith('--')) {
+           this.variables[argument.text] = val - 1;
+           this.api.setState({ variables: { ...this.variables } });
+           return val - 1;
+        }
+      }
+    }
+
+    if (node.type === 'binary_expression') {
+      const operator = node.childForFieldName('operator')?.text;
+      const leftNode = node.childForFieldName('left');
+      const rightNode = node.childForFieldName('right');
+      
+      if (operator === '&&') {
+        const left = this.evaluateExpression(leftNode as SyntaxNode);
+        if (!left) return false;
+        return this.evaluateExpression(rightNode as SyntaxNode);
+      }
+      if (operator === '||') {
+        const left = this.evaluateExpression(leftNode as SyntaxNode);
+        if (left) return true;
+        return this.evaluateExpression(rightNode as SyntaxNode);
+      }
+
+      const left = this.evaluateExpression(leftNode as SyntaxNode);
+      const right = this.evaluateExpression(rightNode as SyntaxNode);
 
       switch(operator) {
         case '==': return left === right;
@@ -489,21 +532,40 @@ export class CalliopeInterpreter {
           }
           return left / right;
         case '%': return left % right;
-        case '<<':
-          if (left === '__COUT__') {
-            if (right !== '__ENDL__') {
-              this.api.log(String(right), 'info');
-            }
-            return '__COUT__';
-          }
-          return left << right;
       }
     }
 
     if (node.type === 'call_expression') {
       const funcName = node.childForFieldName('function')?.text;
-      if (funcName === '_uBit.buttonA.isPressed') return this.api.getButtonA();
-      if (funcName === '_uBit.buttonB.isPressed') return this.api.getButtonB();
+      const argumentsNode = node.childForFieldName('arguments');
+      const args = argumentsNode?.namedChildren.map(arg => this.evaluateExpression(arg)) || [];
+
+      if (funcName === '_uBit.buttonA.isPressed' || funcName === 'uBit.buttonA.isPressed') return this.api.getButtonA();
+      if (funcName === '_uBit.buttonB.isPressed' || funcName === 'uBit.buttonB.isPressed') return this.api.getButtonB();
+      if (funcName === '_uBit.buttonAB.isPressed' || funcName === 'uBit.buttonAB.isPressed') return this.api.getButtonA() && this.api.getButtonB();
+
+      // Pins isTouched
+      if (funcName === '_uBit.io.P0.isTouched' || funcName === 'uBit.io.P0.isTouched') return this.api.getPinTouched('P0');
+      if (funcName === '_uBit.io.P1.isTouched' || funcName === 'uBit.io.P1.isTouched') return this.api.getPinTouched('P1');
+      if (funcName === '_uBit.io.P2.isTouched' || funcName === 'uBit.io.P2.isTouched') return this.api.getPinTouched('P2');
+      if (funcName === '_uBit.io.P3.isTouched' || funcName === 'uBit.io.P3.isTouched') return this.api.getPinTouched('P3');
+
+      // Pins getDigitalValue
+      if (funcName === '_uBit.io.P0.getDigitalValue' || funcName === 'uBit.io.P0.getDigitalValue') return this.api.getPinDigital('P0');
+      if (funcName === '_uBit.io.P1.getDigitalValue' || funcName === 'uBit.io.P1.getDigitalValue') return this.api.getPinDigital('P1');
+      if (funcName === '_uBit.io.P2.getDigitalValue' || funcName === 'uBit.io.P2.getDigitalValue') return this.api.getPinDigital('P2');
+      if (funcName === '_uBit.io.P3.getDigitalValue' || funcName === 'uBit.io.P3.getDigitalValue') return this.api.getPinDigital('P3');
+
+      // image getPixelValue
+      if (funcName === '_uBit.display.image.getPixelValue' || funcName === 'uBit.display.image.getPixelValue' || funcName === 'getPixelValue' || funcName === 'getPixel') {
+        const x = Math.trunc(Number(args[0]) || 0);
+        const y = Math.trunc(Number(args[1]) || 0);
+        if (x >= 0 && x < 5 && y >= 0 && y < 5) {
+          const currentState = this.api.getState();
+          return currentState.ledMatrix[y][x];
+        }
+        return 0;
+      }
     }
 
     return null;

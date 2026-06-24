@@ -626,10 +626,10 @@ body {
   animation: messageAppear 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-@keyframes spin-360 {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+@keyframes spin-360 { 
+  from { transform: rotate(0deg); } 
+  to { transform: rotate(360deg); } 
 }
-.spin-animation {
-  animation: spin-360 0.5s ease-in-out;
+.spin-animation { 
+  animation: spin-360 0.5s ease-in-out; 
 }

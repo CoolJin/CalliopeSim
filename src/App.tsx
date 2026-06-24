@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Square, AlertCircle, Info, CheckCircle, Copy, AlignLeft, Sparkles, Bug, Rocket, BookOpen, Wand2, HelpCircle, RotateCw } from 'lucide-react';
+import { Play, Square, AlertCircle, Info, CheckCircle, Copy, AlignLeft, Sparkles, Bug, Rocket, BookOpen, Wand2, HelpCircle } from 'lucide-react';
 import CodeMirror from '@uiw/react-codemirror';
 import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { cpp } from '@codemirror/lang-cpp';
@@ -98,7 +98,6 @@ function App() {
   const [btnB, setBtnB] = useState(false);
   const [logs, setLogs] = useState<LogMessage[]>([]);
   const [isRunning, setIsRunning] = useState(false);
-  const [isRestarting, setIsRestarting] = useState(false);
 
   // Chatbot states
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -124,14 +123,14 @@ function App() {
   const btnBRef = useRef(btnB);
   const logsRef = useRef(logs);
   const chatHistoryRef = useRef(chatHistory);
+  const stateRef = useRef(state);
   const postRunPromptTimerRef = useRef<number | null>(null);
   const showPresetsTimerRef = useRef<number | null>(null);
-  const lastExecutedCodeRef = useRef<string>(DEFAULT_CODE);
-
   useEffect(() => { btnARef.current = btnA; }, [btnA]);
   useEffect(() => { btnBRef.current = btnB; }, [btnB]);
   useEffect(() => { logsRef.current = logs; }, [logs]);
   useEffect(() => { chatHistoryRef.current = chatHistory; }, [chatHistory]);
+  useEffect(() => { stateRef.current = state; }, [state]);
 
   const handleTypewriterComplete = useCallback(() => {
     if (showPresetsTimerRef.current) clearTimeout(showPresetsTimerRef.current);
@@ -151,11 +150,28 @@ function App() {
   useEffect(() => {
     // Initialize interpreter
     const interpreter = new CalliopeInterpreter({
-      getState: () => state,
+      getState: () => stateRef.current,
       setState: (newState) => setState(prev => ({ ...prev, ...newState })),
       getButtonA: () => btnARef.current,
       getButtonB: () => btnBRef.current,
-      sleep: (ms) => new Promise(resolve => setTimeout(resolve, ms)),
+      getPinTouched: (pin: 'P0' | 'P1' | 'P2' | 'P3') => {
+        const s = stateRef.current;
+        return s.pins[pin].touched;
+      },
+      getPinDigital: (pin: 'P0' | 'P1' | 'P2' | 'P3') => {
+        const s = stateRef.current;
+        return s.pins[pin].digitalValue;
+      },
+      setPinDigital: (pin: 'P0' | 'P1' | 'P2' | 'P3', value: number) => {
+        setState(prev => ({
+          ...prev,
+          pins: {
+            ...prev.pins,
+            [pin]: { ...prev.pins[pin], digitalValue: value }
+          }
+        }));
+      },
+      sleep: (ms: number) => new Promise(resolve => setTimeout(resolve, ms)),
       log: (text, type = 'info') => {
         setLogs(prev => [...prev, { id: Date.now() + Math.random(), text, type }]);
       },
@@ -191,7 +207,6 @@ function App() {
       view.dispatch({ effects: clearLineHighlights.of() });
     }
 
-    lastExecutedCodeRef.current = code;
     await interpreterRef.current.execute(code);
     setIsRunning(false);
     
@@ -206,35 +221,6 @@ function App() {
     }
     setState(initialCalliopeState); // Reset UI
     setIsRunning(false);
-  };
-
-  const handleRestart = async () => {
-    setIsRestarting(true);
-    setTimeout(() => setIsRestarting(false), 500);
-
-    if (interpreterRef.current) {
-      interpreterRef.current.stop();
-    }
-    
-    setState(initialCalliopeState); 
-    setLogs([{ id: Date.now(), text: 'Simulation wird neu gestartet...', type: 'info' }]); 
-    setShowPostRunPrompt(false);
-    setIsConsoleButtonPulsing(false);
-    
-    if (postRunPromptTimerRef.current) clearTimeout(postRunPromptTimerRef.current);
-    postRunPromptTimerRef.current = window.setTimeout(() => {
-      setShowPostRunPrompt(true);
-    }, 2000);
-    
-    const view = cmRef.current?.view;
-    if (view) {
-      view.dispatch({ effects: clearLineHighlights.of() });
-    }
-
-    if (interpreterRef.current) {
-      await interpreterRef.current.execute(lastExecutedCodeRef.current);
-      setIsRunning(false);
-    }
   };
 
   const handleFormatCode = () => {
@@ -552,16 +538,11 @@ function App() {
               )}
             </div>
             
-            <div className="right-controls" style={{ display: 'flex', gap: '8px' }}>
+            <div className="right-controls">
               {!isRunning ? (
                 <button className="btn btn-glass btn-glass-primary" onClick={handleRun} disabled={isTyping} title={isTyping ? "Warte auf KI..." : ""}><Play size={16} /> Code ausführen</button>
               ) : (
-                <>
-                  <button className="btn btn-glass" onClick={handleRestart} title="Letzten Code neu starten" style={{ padding: '8px', aspectRatio: '1/1', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <RotateCw size={16} className={isRestarting ? "spin-animation" : ""} />
-                  </button>
-                  <button className="btn btn-glass btn-glass-danger" onClick={handleStop}><Square size={16} /> Ausführung stoppen</button>
-                </>
+                <button className="btn btn-glass btn-glass-danger" onClick={handleStop}><Square size={16} /> Ausführung stoppen</button>
               )}
             </div>
           </div>
@@ -617,10 +598,34 @@ function App() {
               {/* Pin connectors */}
               <div className="pin pin-minus" title="Pin -"><span className="pin-label label-bottom-right">-</span></div>
               <div className="pin pin-plus" title="Pin +"><span className="pin-label label-bottom-left">+</span></div>
-              <div className="pin pin-0" title="Pin 0"><span className="pin-label label-right">0</span></div>
-              <div className="pin pin-1" title="Pin 1"><span className="pin-label label-top-right">1</span></div>
-              <div className="pin pin-2" title="Pin 2"><span className="pin-label label-top-left">2</span></div>
-              <div className="pin pin-3" title="Pin 3"><span className="pin-label label-left">3</span></div>
+              <div 
+                className={`pin pin-0 ${state.pins.P0.touched ? 'pressed' : ''}`} 
+                title="Pin 0"
+                onMouseDown={() => setState(p => ({...p, pins: {...p.pins, P0: {...p.pins.P0, touched: true}}}))}
+                onMouseUp={() => setState(p => ({...p, pins: {...p.pins, P0: {...p.pins.P0, touched: false}}}))}
+                onMouseLeave={() => setState(p => ({...p, pins: {...p.pins, P0: {...p.pins.P0, touched: false}}}))}
+              ><span className="pin-label label-right">0</span></div>
+              <div 
+                className={`pin pin-1 ${state.pins.P1.touched ? 'pressed' : ''}`} 
+                title="Pin 1"
+                onMouseDown={() => setState(p => ({...p, pins: {...p.pins, P1: {...p.pins.P1, touched: true}}}))}
+                onMouseUp={() => setState(p => ({...p, pins: {...p.pins, P1: {...p.pins.P1, touched: false}}}))}
+                onMouseLeave={() => setState(p => ({...p, pins: {...p.pins, P1: {...p.pins.P1, touched: false}}}))}
+              ><span className="pin-label label-top-right">1</span></div>
+              <div 
+                className={`pin pin-2 ${state.pins.P2.touched ? 'pressed' : ''}`} 
+                title="Pin 2"
+                onMouseDown={() => setState(p => ({...p, pins: {...p.pins, P2: {...p.pins.P2, touched: true}}}))}
+                onMouseUp={() => setState(p => ({...p, pins: {...p.pins, P2: {...p.pins.P2, touched: false}}}))}
+                onMouseLeave={() => setState(p => ({...p, pins: {...p.pins, P2: {...p.pins.P2, touched: false}}}))}
+              ><span className="pin-label label-top-left">2</span></div>
+              <div 
+                className={`pin pin-3 ${state.pins.P3.touched ? 'pressed' : ''}`} 
+                title="Pin 3"
+                onMouseDown={() => setState(p => ({...p, pins: {...p.pins, P3: {...p.pins.P3, touched: true}}}))}
+                onMouseUp={() => setState(p => ({...p, pins: {...p.pins, P3: {...p.pins.P3, touched: false}}}))}
+                onMouseLeave={() => setState(p => ({...p, pins: {...p.pins, P3: {...p.pins.P3, touched: false}}}))}
+              ><span className="pin-label label-left">3</span></div>
             </div>
           </div>
           

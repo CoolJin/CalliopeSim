@@ -32,17 +32,17 @@ CRITICAL FORMATTING & BEHAVIOR RULES:
 4. HALLUZINIERE KEINE BEFEHLE! Du darfst auf keinen Fall falsche Befehle erfinden. Nenne nur existierende Befehle aus der folgenden Liste und erkläre diese zu 100% korrekt.
 
 LISTE ALLER VERFÜGBAREN CALLIOPE BEFEHLE IN DIESEM SIMULATOR:
-- uBit.display.scroll(String): Scrollt einen Text über das 5x5 LED-Display.
-- uBit.display.print(String/Number): Zeigt ein einzelnes Zeichen oder eine Ziffer an.
-- uBit.display.clear(): Löscht alle LEDs auf dem Display (schaltet sie aus).
-- uBit.display.image.setPixelValue(x, y, wert): Schaltet eine bestimmte LED auf dem 5x5 Gitter. x und y (0 bis 4) sind die Koordinaten. wert (0 bis 255) ist die Helligkeit (255 = an, 0 = aus).
-- uBit.display.image.getPixelValue(x, y): Liest die Helligkeit (0-255) der LED an Koordinate x, y aus.
-- uBit.rgb.setColour(MicroBitColor(r, g, b, 255)): Setzt die Farbe der RGB-LED. r, g, und b stehen für Rot, Grün und Blau (jeweils 0 bis 255).
-- uBit.rgb.off(): Schaltet die RGB-LED komplett aus.
-- uBit.sleep(ms): Pausiert das Programm für die angegebene Anzahl an Millisekunden (z.B. 1000 für 1 Sekunde).
-- uBit.buttonA.isPressed(): Prüft, ob Knopf A gerade gedrückt ist (gibt true oder false zurück).
-- uBit.buttonB.isPressed(): Prüft, ob Knopf B gerade gedrückt ist (gibt true oder false zurück).
-- uBit.buttonAB.isPressed(): Prüft, ob Knopf A und B gleichzeitig gedrückt sind.
+- _uBit.display.scroll(String): Scrollt einen Text über das 5x5 LED-Display.
+- _uBit.display.print(String/Number): Zeigt ein einzelnes Zeichen oder eine Ziffer an.
+- _uBit.display.clear(): Löscht alle LEDs auf dem Display (schaltet sie aus).
+- _uBit.display.image.setPixelValue(x, y, wert): Schaltet eine bestimmte LED auf dem 5x5 Gitter. x und y (0 bis 4) sind die Koordinaten. wert (0 bis 255) ist die Helligkeit (255 = an, 0 = aus).
+- _uBit.display.image.getPixelValue(x, y): Liest die Helligkeit (0-255) der LED an Koordinate x, y aus.
+- _uBit.rgb.setColour(MicroBitColor(r, g, b, 255)): Setzt die Farbe der RGB-LED. r, g, und b stehen für Rot, Grün und Blau (jeweils 0 bis 255).
+- _uBit.rgb.off(): Schaltet die RGB-LED komplett aus.
+- _uBit.sleep(ms): Pausiert das Programm für die angegebene Anzahl an Millisekunden (z.B. 1000 für 1 Sekunde).
+- _uBit.buttonA.isPressed(): Prüft, ob Knopf A gerade gedrückt ist (gibt true oder false zurück).
+- _uBit.buttonB.isPressed(): Prüft, ob Knopf B gerade gedrückt ist (gibt true oder false zurück).
+- _uBit.buttonAB.isPressed(): Prüft, ob Knopf A und B gleichzeitig gedrückt sind.
 Du kannst diese Befehle dem Nutzer jederzeit vorschlagen, wenn er danach fragt oder wenn sie sein Problem lösen würden. Erkläre dabei immer kurz, wofür die Parameter in den Klammern stehen!`;
 
     // Modelle absteigend nach Qualität sortiert

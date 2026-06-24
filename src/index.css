@@ -170,7 +170,7 @@ body {
   top: 18%;
   width: 55px;
   height: 55px;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.85) 50%, rgba(239, 68, 68, 0.85) 50%);
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.85) 50%, rgba(239, 68, 68, 0.85) 50%);
   border: 2px solid rgba(255, 255, 255, 0.2);
   font-size: 16px;
   transform: none;
@@ -403,24 +403,24 @@ body {
 }
 
 .btn-glass.btn-primary {
-  background: rgba(94, 106, 210, 0.4);
-  border-color: rgba(94, 106, 210, 0.5);
+  background: rgba(94, 106, 210, 1.0);
+  border-color: rgba(94, 106, 210, 1.0);
 }
 
 .btn-glass.btn-primary:hover {
-  background: rgba(94, 106, 210, 0.5);
-  border-color: rgba(94, 106, 210, 0.6);
+  background: rgba(94, 106, 210, 1.0);
+  border-color: rgba(114, 126, 230, 1.0);
   box-shadow: 0 4px 14px var(--accent-glow);
 }
 
 .btn-glass.btn-danger {
-  background: rgba(220, 38, 38, 0.4);
-  border-color: rgba(220, 38, 38, 0.5);
+  background: rgba(220, 38, 38, 1.0);
+  border-color: rgba(220, 38, 38, 1.0);
 }
 
 .btn-glass.btn-danger:hover {
-  background: rgba(220, 38, 38, 0.5);
-  border-color: rgba(220, 38, 38, 0.6);
+  background: rgba(220, 38, 38, 1.0);
+  border-color: rgba(240, 58, 58, 1.0);
   box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
 }
 

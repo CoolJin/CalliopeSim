@@ -578,36 +578,45 @@ function App() {
           </div>
 
           <div className="calliope-board-wrapper" style={{ position: 'relative' }}>
-            <button 
-              onClick={() => {
-                const muted = audioService.toggleMute();
-                setIsMuted(muted);
-              }}
-              style={{
-                position: 'absolute',
-                top: '10px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                zIndex: 10,
-                background: 'rgba(0, 0, 0, 0.5)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: '50%',
-                width: '40px',
-                height: '40px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                color: isMuted ? '#ef4444' : '#10b981',
-                backdropFilter: 'blur(4px)',
-                transition: 'all 0.2s'
-              }}
-              title={isMuted ? "Ton einschalten" : "Ton ausschalten"}
-            >
-              {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-            </button>
             <div className="calliope-board">
               <img src={`${import.meta.env.BASE_URL}calliope_clean.png`} alt="Calliope Board" className="calliope-bg" onError={(e) => e.currentTarget.style.display = 'none'} />
+              <button 
+                onClick={() => {
+                  const muted = audioService.toggleMute();
+                  setIsMuted(muted);
+                }}
+                style={{
+                  position: 'absolute',
+                  top: '28%',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  zIndex: 10,
+                  background: 'rgba(0, 0, 0, 0.4)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '50%',
+                  width: '36px',
+                  height: '36px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: isMuted ? '#ef4444' : '#10b981',
+                  backdropFilter: 'blur(4px)',
+                  transition: 'all 0.2s',
+                  boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
+                }}
+                title={isMuted ? "Ton einschalten" : "Ton ausschalten"}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(0, 0, 0, 0.6)';
+                  e.currentTarget.style.transform = 'translateX(-50%) scale(1.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(0, 0, 0, 0.4)';
+                  e.currentTarget.style.transform = 'translateX(-50%) scale(1)';
+                }}
+              >
+                {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+              </button>
 
               {/* 5x5 LED Matrix */}
               <div className="led-matrix absolute-matrix">

@@ -68,6 +68,24 @@ int main()
     release_fiber();
 }`;
 
+// Typewriter component for AI responses
+const TypewriterText = ({ text, speed = 15 }: { text: string, speed?: number }) => {
+  const [displayedText, setDisplayedText] = useState('');
+  
+  useEffect(() => {
+    let i = 0;
+    setDisplayedText('');
+    const interval = setInterval(() => {
+      i++;
+      setDisplayedText(text.substring(0, i));
+      if (i >= text.length) clearInterval(interval);
+    }, speed);
+    return () => clearInterval(interval);
+  }, [text, speed]);
+
+  return <>{displayedText}</>;
+};
+
 function App() {
   const [code, setCode] = useState(DEFAULT_CODE);
   const [state, setState] = useState<CalliopeState>(initialCalliopeState);
@@ -430,7 +448,7 @@ function App() {
                 marginBottom: '12px', 
                 padding: '10px 14px', 
                 borderRadius: '12px',
-                background: msg.role === 'user' ? 'rgba(249, 115, 22, 0.02)' : 'var(--surface)',
+                background: msg.role === 'user' ? 'rgba(249, 115, 22, 0.05)' : 'var(--surface)',
                 border: msg.role === 'user' ? '1px solid rgba(249, 115, 22, 0.1)' : '1px solid var(--border)',
                 color: msg.role === 'user' ? '#ffedd5' : 'var(--foreground)',
                 alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
@@ -441,23 +459,21 @@ function App() {
                 <strong style={{ display: 'block', marginBottom: '4px', color: msg.role === 'user' ? '#f97316' : '#38bdf8', fontSize: '12px' }}>
                   {msg.role === 'user' ? 'Du' : 'KI Assistent'}
                 </strong>
-                {msg.text}
+                {msg.role === 'model' && idx === chatHistory.length - 1 ? (
+                  <TypewriterText text={msg.text} speed={15} />
+                ) : (
+                  msg.text
+                )}
               </div>
             ))}
             {isTyping && (
               <div style={{ 
                 marginBottom: '12px', 
-                padding: '10px 14px', 
-                borderRadius: '12px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.05)',
-                alignSelf: 'flex-start',
+                padding: '4px 0', 
+                alignSelf: 'center',
                 width: 'fit-content'
               }}>
-                <strong style={{ display: 'block', marginBottom: '4px', color: '#38bdf8', fontSize: '12px' }}>
-                  KI Assistent
-                </strong>
-                <div className="typing-dots" style={{ padding: '4px 0' }}>
+                <div className="typing-dots">
                   <span></span><span></span><span></span>
                 </div>
               </div>

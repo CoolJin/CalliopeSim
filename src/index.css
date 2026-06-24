@@ -120,9 +120,9 @@ body {
   font-size: 22px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.4);
   text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  overflow: hidden;
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: 1px solid var(--border);
 }
 
 .calliope-btn::before {
@@ -311,8 +311,8 @@ body {
 
 .cm-editor-wrapper .cm-gutters {
   background: transparent !important;
-  backdrop-filter: blur(36px) !important;
-  -webkit-backdrop-filter: blur(36px) !important;
+  backdrop-filter: blur(32px) !important;
+  -webkit-backdrop-filter: blur(32px) !important;
   border-right: 1px solid var(--border);
 }
 
@@ -382,8 +382,8 @@ body {
 .btn-glass {
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.05);
   color: white;
@@ -491,8 +491,8 @@ body {
   border-radius: 12px;
   padding: 16px;
   border: 1px solid rgba(255,255,255,0.05);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
 }
 
 .variables-panel h3 {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Play, Square, AlertCircle, Info, CheckCircle, Copy, AlignLeft, Sparkles, Bug, Rocket, BookOpen, Wand2, HelpCircle } from 'lucide-react';
 import CodeMirror from '@uiw/react-codemirror';
 import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
@@ -69,8 +69,10 @@ int main()
 }`;
 
 // Typewriter component for AI responses
-const TypewriterText = ({ text, speed = 15 }: { text: string, speed?: number }) => {
+const TypewriterText = ({ text, speed = 15, onComplete }: { text: string, speed?: number, onComplete?: () => void }) => {
   const [displayedText, setDisplayedText] = useState('');
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
   
   useEffect(() => {
     let i = 0;
@@ -78,7 +80,10 @@ const TypewriterText = ({ text, speed = 15 }: { text: string, speed?: number }) 
     const interval = setInterval(() => {
       i++;
       setDisplayedText(text.substring(0, i));
-      if (i >= text.length) clearInterval(interval);
+      if (i >= text.length) {
+        clearInterval(interval);
+        if (onCompleteRef.current) onCompleteRef.current();
+      }
     }, speed);
     return () => clearInterval(interval);
   }, [text, speed]);
@@ -124,6 +129,13 @@ function App() {
   useEffect(() => { btnBRef.current = btnB; }, [btnB]);
   useEffect(() => { logsRef.current = logs; }, [logs]);
   useEffect(() => { chatHistoryRef.current = chatHistory; }, [chatHistory]);
+
+  const handleTypewriterComplete = useCallback(() => {
+    if (showPresetsTimerRef.current) clearTimeout(showPresetsTimerRef.current);
+    showPresetsTimerRef.current = window.setTimeout(() => {
+      setShowPresets(true);
+    }, 2000);
+  }, []);
 
   // Auto-scroll chat to bottom
   useEffect(() => {
@@ -249,10 +261,6 @@ function App() {
       }
 
       setChatHistory(prev => [...prev, { role: 'model', text: response }]);
-      
-      showPresetsTimerRef.current = window.setTimeout(() => {
-        setShowPresets(true);
-      }, 2000);
     } catch (e: any) {
       let errorMsg = e.message || String(e);
       if (errorMsg.includes("503") || errorMsg.includes("high demand") || errorMsg.includes("overloaded")) {
@@ -265,10 +273,6 @@ function App() {
         errorMsg = "Ein unbekannter Fehler ist bei der Anfrage aufgetreten. Bitte versuche es noch einmal.";
       }
       setChatHistory(prev => [...prev, { role: 'model', text: 'Fehler: ' + errorMsg }]);
-      
-      showPresetsTimerRef.current = window.setTimeout(() => {
-        setShowPresets(true);
-      }, 2000);
     } finally {
       setIsTyping(false);
     }
@@ -410,7 +414,7 @@ function App() {
             
 
             {chatHistory.map((msg, idx) => (
-              <div key={idx} style={{ 
+              <div key={idx} className="message-appear" style={{ 
                 marginBottom: '12px', 
                 padding: '10px 14px', 
                 borderRadius: '12px',
@@ -426,7 +430,7 @@ function App() {
                   {msg.role === 'user' ? 'Du' : 'KI Assistent'}
                 </strong>
                 {msg.role === 'model' && idx === chatHistory.length - 1 ? (
-                  <TypewriterText text={msg.text} speed={15} />
+                  <TypewriterText text={msg.text} speed={15} onComplete={handleTypewriterComplete} />
                 ) : (
                   msg.text
                 )}
@@ -434,10 +438,12 @@ function App() {
             ))}
             {isTyping && (
               <div style={{ 
-                marginBottom: '12px', 
+                margin: '16px auto', 
                 padding: '4px 0', 
                 alignSelf: 'center',
-                width: 'fit-content'
+                display: 'flex',
+                justifyContent: 'center',
+                width: '100%'
               }}>
                 <div className="typing-dots">
                   <span></span><span></span><span></span>

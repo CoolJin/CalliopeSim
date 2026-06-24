@@ -10,6 +10,7 @@ import type { CalliopeState } from './CalliopeState';
 import { initialCalliopeState } from './CalliopeState';
 import { CalliopeInterpreter } from './Interpreter';
 import { geminiService } from './GeminiService';
+import Silk from './components/Silk';
 
 type LogMessage = {
   id: number;
@@ -268,6 +269,9 @@ function App() {
 
   return (
     <div className="app-container floating-layout">
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: -1, opacity: 0.2 }}>
+        <Silk color="#c0c0c0" speed={3} />
+      </div>
       <div className="left-panel" style={{ position: 'relative' }}>
         <div style={{ position: 'absolute', top: '-20px', left: '4px', color: 'rgba(255,255,255,0.3)', fontSize: '11px', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
           made by Colin

@@ -23,6 +23,7 @@ export class CalliopeInterpreter {
   private api: CalliopeAPI;
   public isRunning = false;
   private currentExecutionId = 0;
+  private microBitName: string | null = null;
 
   // Variables scope (global for simplicity as Open Roberta often uses global vars or simple main scope)
   private variables: Record<string, any> = {};
@@ -70,6 +71,9 @@ export class CalliopeInterpreter {
       return false;
     }
 
+    // Find the declared MicroBit instance name
+    this.microBitName = this.findMicroBitInstance(tree.rootNode);
+
     // Validate AST for unknown functions
     const validationErrors: string[] = [];
     this.validateAST(tree.rootNode, validationErrors);
@@ -116,72 +120,97 @@ export class CalliopeInterpreter {
     }
   }
 
+  private findMicroBitInstance(node: SyntaxNode): string | null {
+    if (node.type === 'declaration') {
+      const typeNode = node.childForFieldName('type');
+      if (typeNode && typeNode.text === 'MicroBit') {
+        const declaratorNode = node.childForFieldName('declarator');
+        if (declaratorNode && declaratorNode.type === 'identifier') {
+          return declaratorNode.text;
+        }
+      }
+    }
+    for (let child of node.children) {
+      const found = this.findMicroBitInstance(child);
+      if (found) return found;
+    }
+    return null;
+  }
+
   private validateAST(node: SyntaxNode, errors: string[]) {
     if (node.type === 'call_expression') {
       const funcName = node.childForFieldName('function')?.text;
       
       if (funcName) {
-        const knownUnsupportedPrefixes = [
-          '_uBit.accelerometer.', 'uBit.accelerometer.',
-          '_uBit.compass.', 'uBit.compass.',
-          '_uBit.thermometer.', 'uBit.thermometer.',
-          '_uBit.soundmotor.', 'uBit.soundmotor.',
-          '_uBit.serial.', 'uBit.serial.',
-          '_uBit.radio.', 'uBit.radio.',
-          '_uBit.i2c.', 'uBit.i2c.',
-          '_uBit.spi.', 'uBit.spi.',
-          '_uBit.messageBus.', 'uBit.messageBus.',
-          '_uBit.storage.', 'uBit.storage.',
-          '_uBit.systemTime', 'uBit.systemTime',
-          '_uBit.random', 'uBit.random'
-        ];
-        
-        const knownSupported = [
-          '_uBit.display.scroll', 'uBit.display.scroll',
-          '_uBit.display.print', 'uBit.display.print',
-          '_uBit.display.clear', 'uBit.display.clear',
-          '_uBit.rgb.setColour', 'uBit.rgb.setColour',
-          '_uBit.rgb.off', 'uBit.rgb.off',
-          '_uBit.buttonA.isPressed', 'uBit.buttonA.isPressed',
-          '_uBit.buttonB.isPressed', 'uBit.buttonB.isPressed',
-          '_uBit.buttonAB.isPressed', 'uBit.buttonAB.isPressed',
-          '_uBit.io.P0.isTouched', 'uBit.io.P0.isTouched',
-          '_uBit.io.P1.isTouched', 'uBit.io.P1.isTouched',
-          '_uBit.io.P2.isTouched', 'uBit.io.P2.isTouched',
-          '_uBit.io.P3.isTouched', 'uBit.io.P3.isTouched',
-          '_uBit.io.P0.getDigitalValue', 'uBit.io.P0.getDigitalValue',
-          '_uBit.io.P1.getDigitalValue', 'uBit.io.P1.getDigitalValue',
-          '_uBit.io.P2.getDigitalValue', 'uBit.io.P2.getDigitalValue',
-          '_uBit.io.P3.getDigitalValue', 'uBit.io.P3.getDigitalValue',
-          '_uBit.io.P0.setDigitalValue', 'uBit.io.P0.setDigitalValue',
-          '_uBit.io.P1.setDigitalValue', 'uBit.io.P1.setDigitalValue',
-          '_uBit.io.P2.setDigitalValue', 'uBit.io.P2.setDigitalValue',
-          '_uBit.io.P3.setDigitalValue', 'uBit.io.P3.setDigitalValue',
-          '_uBit.display.image.setPixelValue', 'uBit.display.image.setPixelValue',
-          '_uBit.display.image.getPixelValue', 'uBit.display.image.getPixelValue',
-          'release_fiber',
-          '_uBit.init', 'uBit.init',
-          '_uBit.sleep', 'uBit.sleep',
-          'MicroBitColor'
-        ];
-        
-        const isSupported = knownSupported.some(name => funcName === name || funcName.startsWith(name));
-                          
-        if (!isSupported) {
-          const isKnownUnsupported = knownUnsupportedPrefixes.some(prefix => funcName.startsWith(prefix)) || 
-                                     funcName.startsWith('_uBit.display.') || funcName.startsWith('uBit.display.') || 
-                                     funcName.startsWith('_uBit.button') || funcName.startsWith('uBit.button') ||
-                                     funcName.startsWith('_uBit.rgb.') || funcName.startsWith('uBit.rgb.') ||
-                                     funcName.startsWith('_uBit.io.') || funcName.startsWith('uBit.io.');
-          if (isKnownUnsupported) {
-            errors.push(`Nicht unterstützt: Die Funktion '${funcName}' existiert auf dem echten Calliope, wird aber im Simulator aktuell nicht unterstützt (Zeile ${node.startPosition.row + 1}).`);
-          } else {
-            errors.push(`Validierungsfehler: Unbekannte Funktion oder Tippfehler '${funcName}' in Zeile ${node.startPosition.row + 1}`);
+        // Global functions
+        if (funcName === 'release_fiber' || funcName === 'MicroBitColor') {
+           // Supported globally
+        } else if (this.microBitName) {
+          const m = this.microBitName;
+          const knownUnsupportedPrefixes = [
+            `${m}.accelerometer.`,
+            `${m}.compass.`,
+            `${m}.thermometer.`,
+            `${m}.soundmotor.`,
+            `${m}.serial.`,
+            `${m}.radio.`,
+            `${m}.i2c.`,
+            `${m}.spi.`,
+            `${m}.messageBus.`,
+            `${m}.storage.`,
+            `${m}.systemTime`,
+            `${m}.random`
+          ];
+          
+          const knownSupported = [
+            `${m}.display.scroll`,
+            `${m}.display.print`,
+            `${m}.display.clear`,
+            `${m}.rgb.setColour`,
+            `${m}.rgb.off`,
+            `${m}.buttonA.isPressed`,
+            `${m}.buttonB.isPressed`,
+            `${m}.buttonAB.isPressed`,
+            `${m}.io.P0.isTouched`,
+            `${m}.io.P1.isTouched`,
+            `${m}.io.P2.isTouched`,
+            `${m}.io.P3.isTouched`,
+            `${m}.io.P0.getDigitalValue`,
+            `${m}.io.P1.getDigitalValue`,
+            `${m}.io.P2.getDigitalValue`,
+            `${m}.io.P3.getDigitalValue`,
+            `${m}.io.P0.setDigitalValue`,
+            `${m}.io.P1.setDigitalValue`,
+            `${m}.io.P2.setDigitalValue`,
+            `${m}.io.P3.setDigitalValue`,
+            `${m}.display.image.setPixelValue`,
+            `${m}.display.image.getPixelValue`,
+            `${m}.init`,
+            `${m}.sleep`
+          ];
+          
+          const isSupported = knownSupported.some(name => funcName === name || funcName.startsWith(name));
+                            
+          if (!isSupported) {
+            const isKnownUnsupported = knownUnsupportedPrefixes.some(prefix => funcName.startsWith(prefix)) || 
+                                       funcName.startsWith(`${m}.display.`) || 
+                                       funcName.startsWith(`${m}.button`) ||
+                                       funcName.startsWith(`${m}.rgb.`) ||
+                                       funcName.startsWith(`${m}.io.`);
+            if (isKnownUnsupported) {
+              errors.push(`Nicht unterstützt: Die Funktion '${funcName}' existiert auf dem echten Calliope, wird aber im Simulator aktuell nicht unterstützt (Zeile ${node.startPosition.row + 1}).`);
+            } else {
+              errors.push(`Validierungsfehler: Unbekannte Funktion oder Tippfehler '${funcName}' in Zeile ${node.startPosition.row + 1}`);
+            }
           }
+        } else {
+          // No MicroBit object was declared, but a function was called!
+          // We allow standard global functions, but anything else is an error.
+          errors.push(`Validierungsfehler: Unbekannte Funktion oder nicht instanziertes Objekt '${funcName}' in Zeile ${node.startPosition.row + 1}`);
         }
       }
     }
-
+    
     for (let child of node.children) {
       this.validateAST(child, errors);
     }
@@ -352,68 +381,65 @@ export class CalliopeInterpreter {
       
       const funcName = functionNode?.text;
       const args = argumentsNode?.namedChildren.map(arg => this.evaluateExpression(arg)) || [];
-
-      // Open Roberta specific maps
-      if (funcName?.startsWith('_uBit.display.scroll') || funcName?.startsWith('uBit.display.scroll')) {
-        await this.simulateDisplayScroll(args[0], execId);
-      } 
-      else if (funcName?.startsWith('_uBit.display.print') || funcName?.startsWith('uBit.display.print')) {
-        await this.simulateDisplayPrint(args[0]);
-      }
-      else if (funcName?.startsWith('_uBit.display.clear') || funcName?.startsWith('uBit.display.clear')) {
-        this.api.setState({ ledMatrix: Array(5).fill(Array(5).fill(0)) });
-      }
-      else if (funcName === '_uBit.display.image.setPixelValue' || funcName === 'uBit.display.image.setPixelValue') {
-        const x = Math.trunc(Number(args[0]) || 0);
-        const y = Math.trunc(Number(args[1]) || 0);
-        const value = Number(args[2]) || 0;
-        
-        if (x >= 0 && x < 5 && y >= 0 && y < 5) {
-          const currentState = this.api.getState();
-          const matrix = currentState.ledMatrix.map(row => [...row]);
-          matrix[y][x] = value > 255 ? 255 : (value < 0 ? 0 : value);
-          this.api.setState({ ledMatrix: matrix });
+      
+      if (this.microBitName) {
+        const m = this.microBitName;
+        if (funcName?.startsWith(`${m}.display.scroll`)) {
+          await this.simulateDisplayScroll(args[0], execId);
+        } 
+        else if (funcName?.startsWith(`${m}.display.print`)) {
+          await this.simulateDisplayPrint(args[0]);
         }
-      }
-      else if (funcName === '_uBit.display.image.getPixelValue' || funcName === 'uBit.display.image.getPixelValue') {
-        const x = Math.trunc(Number(args[0]) || 0);
-        const y = Math.trunc(Number(args[1]) || 0);
-        if (x >= 0 && x < 5 && y >= 0 && y < 5) {
-          const currentState = this.api.getState();
-          return currentState.ledMatrix[y][x];
+        else if (funcName?.startsWith(`${m}.display.clear`)) {
+          this.api.setState({ ledMatrix: Array(5).fill(Array(5).fill(0)) });
         }
-        return 0;
-      }
-      else if (funcName?.startsWith('_uBit.rgb.setColour') || funcName?.startsWith('uBit.rgb.setColour')) {
-        if (argumentsNode && argumentsNode.text.includes('MicroBitColor')) {
-          const colorArgsMatch = argumentsNode.text.match(/MicroBitColor\((.*?)\)/);
-          if (colorArgsMatch) {
-            const colorVals = colorArgsMatch[1].split(',').map(s => parseInt(s.trim()));
-            this.api.setState({ rgbLed: [colorVals[0], colorVals[1], colorVals[2]] });
+        else if (funcName === `${m}.display.image.setPixelValue`) {
+          const x = Math.trunc(Number(args[0]) || 0);
+          const y = Math.trunc(Number(args[1]) || 0);
+          const value = Number(args[2]) || 0;
+          
+          if (x >= 0 && x < 5 && y >= 0 && y < 5) {
+            const currentState = this.api.getState();
+            const matrix = currentState.ledMatrix.map(row => [...row]);
+            matrix[y][x] = value > 255 ? 255 : (value < 0 ? 0 : value);
+            this.api.setState({ ledMatrix: matrix });
           }
         }
+        else if (funcName?.startsWith(`${m}.rgb.setColour`)) {
+          if (argumentsNode && argumentsNode.text.includes('MicroBitColor')) {
+            const colorArgsMatch = argumentsNode.text.match(/MicroBitColor\((.*?)\)/);
+            if (colorArgsMatch) {
+              const colorVals = colorArgsMatch[1].split(',').map(s => parseInt(s.trim()));
+              this.api.setState({ rgbLed: [colorVals[0], colorVals[1], colorVals[2]] });
+            }
+          }
+        }
+        else if (funcName?.startsWith(`${m}.rgb.off`)) {
+          this.api.setState({ rgbLed: [0, 0, 0] });
+        }
+        else if (funcName === `${m}.init`) {
+          // Ignore, boilerplate
+        }
+        else if (funcName === `${m}.sleep`) {
+          await this.api.sleep(args[0] || 100);
+        }
+        // Pins setDigitalValue
+        else if (funcName === `${m}.io.P0.setDigitalValue`) {
+          this.api.setPinDigital('P0', Number(args[0]) || 0);
+        }
+        else if (funcName === `${m}.io.P1.setDigitalValue`) {
+          this.api.setPinDigital('P1', Number(args[0]) || 0);
+        }
+        else if (funcName === `${m}.io.P2.setDigitalValue`) {
+          this.api.setPinDigital('P2', Number(args[0]) || 0);
+        }
+        else if (funcName === `${m}.io.P3.setDigitalValue`) {
+          this.api.setPinDigital('P3', Number(args[0]) || 0);
+        }
       }
-      else if (funcName?.startsWith('_uBit.rgb.off') || funcName?.startsWith('uBit.rgb.off')) {
-        this.api.setState({ rgbLed: [0, 0, 0] });
-      }
-      else if (funcName === 'release_fiber' || funcName === '_uBit.init' || funcName === 'uBit.init') {
+      
+      if (funcName === 'release_fiber') {
         // Ignore, boilerplate
-      }
-      else if (funcName === '_uBit.sleep' || funcName === 'uBit.sleep') {
-        await this.api.sleep(args[0] || 100);
-      }
-      // Pins setDigitalValue
-      else if (funcName === '_uBit.io.P0.setDigitalValue' || funcName === 'uBit.io.P0.setDigitalValue') {
-        this.api.setPinDigital('P0', Number(args[0]) || 0);
-      }
-      else if (funcName === '_uBit.io.P1.setDigitalValue' || funcName === 'uBit.io.P1.setDigitalValue') {
-        this.api.setPinDigital('P1', Number(args[0]) || 0);
-      }
-      else if (funcName === '_uBit.io.P2.setDigitalValue' || funcName === 'uBit.io.P2.setDigitalValue') {
-        this.api.setPinDigital('P2', Number(args[0]) || 0);
-      }
-      else if (funcName === '_uBit.io.P3.setDigitalValue' || funcName === 'uBit.io.P3.setDigitalValue') {
-        this.api.setPinDigital('P3', Number(args[0]) || 0);
       }
       else if (funcName?.startsWith('MicroBitColor')) {
         // Constructor mock
@@ -540,31 +566,34 @@ export class CalliopeInterpreter {
       const argumentsNode = node.childForFieldName('arguments');
       const args = argumentsNode?.namedChildren.map(arg => this.evaluateExpression(arg)) || [];
 
-      if (funcName === '_uBit.buttonA.isPressed' || funcName === 'uBit.buttonA.isPressed') return this.api.getButtonA();
-      if (funcName === '_uBit.buttonB.isPressed' || funcName === 'uBit.buttonB.isPressed') return this.api.getButtonB();
-      if (funcName === '_uBit.buttonAB.isPressed' || funcName === 'uBit.buttonAB.isPressed') return this.api.getButtonA() && this.api.getButtonB();
+      if (this.microBitName) {
+        const m = this.microBitName;
+        if (funcName === `${m}.buttonA.isPressed`) return this.api.getButtonA();
+        if (funcName === `${m}.buttonB.isPressed`) return this.api.getButtonB();
+        if (funcName === `${m}.buttonAB.isPressed`) return this.api.getButtonA() && this.api.getButtonB();
 
-      // Pins isTouched
-      if (funcName === '_uBit.io.P0.isTouched' || funcName === 'uBit.io.P0.isTouched') return this.api.getPinTouched('P0');
-      if (funcName === '_uBit.io.P1.isTouched' || funcName === 'uBit.io.P1.isTouched') return this.api.getPinTouched('P1');
-      if (funcName === '_uBit.io.P2.isTouched' || funcName === 'uBit.io.P2.isTouched') return this.api.getPinTouched('P2');
-      if (funcName === '_uBit.io.P3.isTouched' || funcName === 'uBit.io.P3.isTouched') return this.api.getPinTouched('P3');
+        // Pins isTouched
+        if (funcName === `${m}.io.P0.isTouched`) return this.api.getPinTouched('P0');
+        if (funcName === `${m}.io.P1.isTouched`) return this.api.getPinTouched('P1');
+        if (funcName === `${m}.io.P2.isTouched`) return this.api.getPinTouched('P2');
+        if (funcName === `${m}.io.P3.isTouched`) return this.api.getPinTouched('P3');
 
-      // Pins getDigitalValue
-      if (funcName === '_uBit.io.P0.getDigitalValue' || funcName === 'uBit.io.P0.getDigitalValue') return this.api.getPinDigital('P0');
-      if (funcName === '_uBit.io.P1.getDigitalValue' || funcName === 'uBit.io.P1.getDigitalValue') return this.api.getPinDigital('P1');
-      if (funcName === '_uBit.io.P2.getDigitalValue' || funcName === 'uBit.io.P2.getDigitalValue') return this.api.getPinDigital('P2');
-      if (funcName === '_uBit.io.P3.getDigitalValue' || funcName === 'uBit.io.P3.getDigitalValue') return this.api.getPinDigital('P3');
+        // Pins getDigitalValue
+        if (funcName === `${m}.io.P0.getDigitalValue`) return this.api.getPinDigital('P0');
+        if (funcName === `${m}.io.P1.getDigitalValue`) return this.api.getPinDigital('P1');
+        if (funcName === `${m}.io.P2.getDigitalValue`) return this.api.getPinDigital('P2');
+        if (funcName === `${m}.io.P3.getDigitalValue`) return this.api.getPinDigital('P3');
 
-      // image getPixelValue
-      if (funcName === '_uBit.display.image.getPixelValue' || funcName === 'uBit.display.image.getPixelValue') {
-        const x = Math.trunc(Number(args[0]) || 0);
-        const y = Math.trunc(Number(args[1]) || 0);
-        if (x >= 0 && x < 5 && y >= 0 && y < 5) {
-          const currentState = this.api.getState();
-          return currentState.ledMatrix[y][x];
+        // image getPixelValue
+        if (funcName === `${m}.display.image.getPixelValue`) {
+          const x = Math.trunc(Number(args[0]) || 0);
+          const y = Math.trunc(Number(args[1]) || 0);
+          if (x >= 0 && x < 5 && y >= 0 && y < 5) {
+            const currentState = this.api.getState();
+            return currentState.ledMatrix[y][x];
+          }
+          return 0;
         }
-        return 0;
       }
     }
 

@@ -402,25 +402,6 @@ body {
   z-index: -1;
 }
 
-.btn-restart {
-  padding: 0;
-  width: 43px;
-  height: 43px;
-  border-radius: 24px !important;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-@keyframes spin360 {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.spin-animation {
-  animation: spin360 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
 .btn-glass:hover {
   background: rgba(255, 255, 255, 0.08);
   transform: translateY(-1px);
@@ -643,4 +624,6 @@ body {
 
 .message-appear {
   animation: messageAppear 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
+}@ k e y f r a m e s   s p i n - 3 6 0   {   f r o m   {   t r a n s f o r m :   r o t a t e ( 0 d e g ) ;   }   t o   {   t r a n s f o r m :   r o t a t e ( 3 6 0 d e g ) ;   }   }  
+ . s p i n - a n i m a t i o n   {   a n i m a t i o n :   s p i n - 3 6 0   0 . 5 s   e a s e - i n - o u t ;   }  
+ 

@@ -98,13 +98,13 @@ function App() {
   const [btnB, setBtnB] = useState(false);
   const [logs, setLogs] = useState<LogMessage[]>([]);
   const [isRunning, setIsRunning] = useState(false);
+  const [isRestarting, setIsRestarting] = useState(false);
 
   // Chatbot states
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [showPresets, setShowPresets] = useState(false);
-  const [isRestarting, setIsRestarting] = useState(false);
+  const [showPresets, setShowPresets] = useState(true);
   const [showPostRunPrompt, setShowPostRunPrompt] = useState(false);
   const [isConsoleButtonPulsing, setIsConsoleButtonPulsing] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -211,19 +211,14 @@ function App() {
   const handleRestart = async () => {
     setIsRestarting(true);
     handleStop();
-    setLogs(prev => [...prev, { id: Date.now(), text: 'Simulation wird neu gestartet...', type: 'info' }]);
-    
-    // Kurze Verzögerung, damit State sicher reset ist + Animation sichtbar
+    // Kurze Verzögerung, damit Animation sichtbar ist und State sicher reset ist
     setTimeout(async () => {
-      if (!interpreterRef.current) {
-        setIsRestarting(false);
-        return;
-      }
-      setLogs([]); 
+      setIsRestarting(false);
+      if (!interpreterRef.current) return;
+      setLogs([{ id: Date.now(), text: 'Simulation wird neu gestartet...', type: 'info' }]); 
       setIsRunning(true);
       setShowPostRunPrompt(false);
       setIsConsoleButtonPulsing(false);
-      setIsRestarting(false);
       
       if (postRunPromptTimerRef.current) clearTimeout(postRunPromptTimerRef.current);
       postRunPromptTimerRef.current = window.setTimeout(() => {
@@ -560,10 +555,10 @@ function App() {
                 <button className="btn btn-glass btn-glass-primary" onClick={handleRun} disabled={isTyping} title={isTyping ? "Warte auf KI..." : ""}><Play size={16} /> Code ausführen</button>
               ) : (
                 <>
-                  <button className="btn btn-glass btn-restart" onClick={handleRestart} title="Letzten Code neu starten">
+                  <button className="btn btn-glass" onClick={handleRestart} title="Letzten Code neu starten" style={{ padding: '8px', height: '38px', aspectRatio: '1/1', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     <RotateCw size={16} className={isRestarting ? "spin-animation" : ""} />
                   </button>
-                  <button className="btn btn-glass btn-glass-danger" onClick={handleStop}><Square size={16} /> Ausführung stoppen</button>
+                  <button className="btn btn-glass btn-glass-danger" onClick={handleStop} style={{ height: '38px' }}><Square size={16} /> Ausführung stoppen</button>
                 </>
               )}
             </div>

@@ -3,7 +3,9 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const API_KEYS = [
   import.meta.env.VITE_GEMINI_API_KEY_1 || "",
   import.meta.env.VITE_GEMINI_API_KEY_2 || "",
-  import.meta.env.VITE_GEMINI_API_KEY_3 || ""
+  import.meta.env.VITE_GEMINI_API_KEY_3 || "",
+  import.meta.env.VITE_GEMINI_API_KEY_4 || "",
+  import.meta.env.VITE_GEMINI_API_KEY_5 || ""
 ].filter(Boolean);
 
 class GeminiService {

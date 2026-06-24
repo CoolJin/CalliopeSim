@@ -418,15 +418,15 @@ function App() {
                 marginBottom: '12px', 
                 padding: '10px 14px', 
                 borderRadius: '12px',
-                background: msg.role === 'user' ? 'rgba(94, 106, 210, 0.1)' : 'var(--surface)',
-                border: msg.role === 'user' ? '1px solid rgba(94, 106, 210, 0.3)' : '1px solid var(--border)',
-                color: msg.role === 'user' ? '#e0e7ff' : 'var(--foreground)',
+                background: msg.role === 'user' ? 'rgba(249, 115, 22, 0.05)' : 'var(--surface)',
+                border: msg.role === 'user' ? '1px solid rgba(249, 115, 22, 0.2)' : '1px solid var(--border)',
+                color: msg.role === 'user' ? '#ffedd5' : 'var(--foreground)',
                 alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
                 whiteSpace: 'pre-wrap',
                 fontFamily: msg.role === 'model' ? 'Inter, sans-serif' : 'inherit',
                 transition: 'all var(--easing) 0.3s'
               }}>
-                <strong style={{ display: 'block', marginBottom: '4px', color: msg.role === 'user' ? 'var(--accent)' : '#38bdf8', fontSize: '12px' }}>
+                <strong style={{ display: 'block', marginBottom: '4px', color: msg.role === 'user' ? '#f97316' : '#38bdf8', fontSize: '12px' }}>
                   {msg.role === 'user' ? 'Du' : 'KI Assistent'}
                 </strong>
                 {msg.text}

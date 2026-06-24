@@ -587,7 +587,7 @@ function App() {
                 }}
                 style={{
                   position: 'absolute',
-                  top: '15%',
+                  top: '28%',
                   left: '50%',
                   transform: 'translateX(-50%)',
                   zIndex: 10,

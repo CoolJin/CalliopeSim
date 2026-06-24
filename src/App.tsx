@@ -210,29 +210,31 @@ function App() {
 
   const handleRestart = async () => {
     setIsRestarting(true);
-    handleStop();
-    // Kurze Verzögerung, damit Animation sichtbar ist und State sicher reset ist
-    setTimeout(async () => {
-      setIsRestarting(false);
-      if (!interpreterRef.current) return;
-      setLogs([{ id: Date.now(), text: 'Simulation wird neu gestartet...', type: 'info' }]); 
-      setIsRunning(true);
-      setShowPostRunPrompt(false);
-      setIsConsoleButtonPulsing(false);
-      
-      if (postRunPromptTimerRef.current) clearTimeout(postRunPromptTimerRef.current);
-      postRunPromptTimerRef.current = window.setTimeout(() => {
-        setShowPostRunPrompt(true);
-      }, 2000);
-      
-      const view = cmRef.current?.view;
-      if (view) {
-        view.dispatch({ effects: clearLineHighlights.of() });
-      }
+    setTimeout(() => setIsRestarting(false), 500);
 
+    if (interpreterRef.current) {
+      interpreterRef.current.stop();
+    }
+    
+    setState(initialCalliopeState); 
+    setLogs([{ id: Date.now(), text: 'Simulation wird neu gestartet...', type: 'info' }]); 
+    setShowPostRunPrompt(false);
+    setIsConsoleButtonPulsing(false);
+    
+    if (postRunPromptTimerRef.current) clearTimeout(postRunPromptTimerRef.current);
+    postRunPromptTimerRef.current = window.setTimeout(() => {
+      setShowPostRunPrompt(true);
+    }, 2000);
+    
+    const view = cmRef.current?.view;
+    if (view) {
+      view.dispatch({ effects: clearLineHighlights.of() });
+    }
+
+    if (interpreterRef.current) {
       await interpreterRef.current.execute(lastExecutedCodeRef.current);
       setIsRunning(false);
-    }, 100);
+    }
   };
 
   const handleFormatCode = () => {
@@ -555,10 +557,10 @@ function App() {
                 <button className="btn btn-glass btn-glass-primary" onClick={handleRun} disabled={isTyping} title={isTyping ? "Warte auf KI..." : ""}><Play size={16} /> Code ausführen</button>
               ) : (
                 <>
-                  <button className="btn btn-glass" onClick={handleRestart} title="Letzten Code neu starten" style={{ padding: '8px', height: '38px', aspectRatio: '1/1', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                  <button className="btn btn-glass" onClick={handleRestart} title="Letzten Code neu starten" style={{ padding: '8px', aspectRatio: '1/1', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     <RotateCw size={16} className={isRestarting ? "spin-animation" : ""} />
                   </button>
-                  <button className="btn btn-glass btn-glass-danger" onClick={handleStop} style={{ height: '38px' }}><Square size={16} /> Ausführung stoppen</button>
+                  <button className="btn btn-glass btn-glass-danger" onClick={handleStop}><Square size={16} /> Ausführung stoppen</button>
                 </>
               )}
             </div>

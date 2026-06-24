@@ -137,6 +137,10 @@ function App() {
     if (showPresetsTimerRef.current) clearTimeout(showPresetsTimerRef.current);
     showPresetsTimerRef.current = window.setTimeout(() => {
       setShowPresets(true);
+      // Wait for grid transition to complete (0.5s), then scroll down so messages aren't hidden
+      setTimeout(() => {
+        chatMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 550);
     }, 2000);
   }, []);
 
@@ -489,7 +493,11 @@ function App() {
             <div ref={chatMessagesEndRef} />
           </div>
           <div className={`presets-wrapper ${showPresets ? 'open' : ''}`}>
-            <div className="presets-inner" style={{ display: 'flex', flexDirection: 'column', gap: '8px', opacity: showPresets ? 1 : 0, transition: 'opacity 0.4s ease 0.1s', overflow: 'hidden' }}>
+            <div className="presets-inner" style={{ 
+              display: 'flex', flexDirection: 'column', gap: '8px', 
+              opacity: showPresets ? 1 : 0, transition: 'opacity 0.4s ease 0.1s', 
+              overflow: 'hidden', padding: '12px', margin: '-12px' 
+            }}>
               <button 
                 onClick={() => handleSendChat("Wie fange ich an?")}
                 className="preset-btn btn-glass"

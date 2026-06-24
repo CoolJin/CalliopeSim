@@ -49,8 +49,6 @@ LISTE ALLER VERFÜGBAREN CALLIOPE BEFEHLE IN DIESEM SIMULATOR:
 - _uBit.soundmotor.soundOff(): Schaltet die Tonausgabe sofort aus.
 Typisches Muster für Töne: \`_uBit.soundmotor.soundOn(440); _uBit.sleep(1000); _uBit.soundmotor.soundOff();\`
 
-CRITICAL: Der Schüler MUSS immer zwingend \`#include "MicroBit.h"\` ganz oben in seinem Code stehen haben, sonst funktioniert absolut gar nichts und der Compiler wirft einen Fehler! Achte darauf, dass dieses Include nicht versehentlich gelöscht wird.
-
 Du kannst diese Befehle dem Nutzer jederzeit vorschlagen, wenn er danach fragt oder wenn sie sein Problem lösen würden. Erkläre dabei immer kurz, wofür die Parameter in den Klammern stehen!`;
 
     // Modelle absteigend nach Qualität sortiert

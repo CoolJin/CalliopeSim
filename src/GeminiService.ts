@@ -9,7 +9,7 @@ const API_KEYS = [
 ].filter(Boolean);
 
 class GeminiService {
-  public async sendMessage(userMessage: string, history: any[], currentCode: string, consoleOutput: string): Promise<string> {
+  public async sendMessage(userMessage: string, history: any[], currentCode: string, consoleOutput: string): Promise<{ text: string; modelLevel: number }> {
     const numberedCode = currentCode.split('\n').map((line, idx) => `${idx + 1}: ${line}`).join('\n');
     
     const systemInstruction = `Du bist ein C++ Lernassistent für ein Informatikprojekt. 
@@ -60,7 +60,8 @@ Du kannst diese Befehle dem Nutzer jederzeit vorschlagen, wenn er danach fragt o
     // dann das zweitbeste über alle Keys, usw.
     // Da wir bei jedem Aufruf von vorne anfangen, wird auch immer wieder geprüft,
     // ob die besten Modelle (oder Keys) wieder verfügbar sind.
-    for (const modelName of MODELS) {
+    for (let modelIndex = 0; modelIndex < MODELS.length; modelIndex++) {
+      const modelName = MODELS[modelIndex];
       for (let keyIndex = 0; keyIndex < API_KEYS.length; keyIndex++) {
         try {
           const genAI = new GoogleGenerativeAI(API_KEYS[keyIndex]);
@@ -89,24 +90,19 @@ Du kannst diese Befehle dem Nutzer jederzeit vorschlagen, wenn er danach fragt o
           });
 
           const result = await chat.sendMessage(userMessage);
-          console.log(`Successfully used model ${modelName} with API Key ${keyIndex + 1}`);
-          return result.response.text();
+          console.log(`Successfully used model ${modelName} (Level ${modelIndex}) with API Key ${keyIndex + 1}`);
+          return { text: result.response.text(), modelLevel: modelIndex };
           
         } catch (error: any) {
           console.warn(`Model ${modelName} failed on API Key ${keyIndex + 1}:`, error.message || error);
           lastError = error;
-          // Bei jedem Fehler (Rate Limit, Model Not Found, 503) probieren wir den nächsten Key oder das nächste Modell
+          // Bei jedem Fehler probieren wir den nächsten Key oder das nächste Modell
           continue;
         }
       }
     }
     
-    // Wenn alle 9 Kombinationen fehlgeschlagen sind
-    if (lastError) {
-      throw new Error("Fehler bei der KI-Anfrage: " + (lastError.message || String(lastError)));
-    }
-    
-    throw new Error("Der KI-Assistent ist momentan leider nicht erreichbar. Bitte versuche es später erneut.");
+    throw new Error(`Alle Modelle und API Keys sind aktuell überlastet oder fehlerhaft. Letzter Fehler: ${lastError?.message}`);
   }
 }
 

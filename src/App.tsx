@@ -104,6 +104,7 @@ function App() {
   const [chatInput, setChatInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showPresets, setShowPresets] = useState(true);
+  const [activeModelLevel, setActiveModelLevel] = useState(0);
   const [showPostRunPrompt, setShowPostRunPrompt] = useState(false);
   const [isConsoleButtonPulsing, setIsConsoleButtonPulsing] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -254,28 +255,27 @@ function App() {
 
     try {
       const consoleOutput = logs.map(l => l.text).join('\n');
-      let response = await geminiService.sendMessage(userMsg, chatHistory, code, consoleOutput);
+      const { text: responseText, modelLevel } = await geminiService.sendMessage(userMsg, chatHistory, code, consoleOutput);
       
+      setActiveModelLevel(modelLevel);
+      let response = responseText;
+
       if (view) {
         let linesToMark: number[] = [];
         const regex = /<mark_line>(\d+)<\/mark_line>/g;
-        response = response.replace(regex, (_match, lineNumStr) => {
+        response = response.replace(regex, (_match: string, lineNumStr: string) => {
           const lineNum = parseInt(lineNumStr);
           if (!isNaN(lineNum) && lineNum >= 1 && lineNum <= view.state.doc.lines) {
             linesToMark.push(lineNum);
           }
-          return lineNumStr;
+          return '';
         });
 
         if (linesToMark.length > 0) {
-          const decos = linesToMark.map(ln => view.state.doc.line(ln).from);
-          
-          if (decos.length > 0) {
-            view.dispatch({
-              effects: setLineHighlights.of(decos),
-              scrollIntoView: true
-            });
-          }
+          const positions = linesToMark.map(ln => view.state.doc.line(ln).from);
+          view.dispatch({ effects: setLineHighlights.of(positions) });
+          // Scroll first marked line into view
+          view.dispatch({ effects: EditorView.scrollIntoView(positions[0], { y: "center" }) });
         }
       }
 
@@ -423,7 +423,24 @@ function App() {
 
       <div className="middle-panel">
         <div className="floating-panel ai-chat-panel" style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column' }}>
-          <h3 style={{ fontSize: '16px', color: '#6366F1', margin: 0, textShadow: '0 0 10px rgba(99, 102, 241, 0.3)', marginBottom: '16px' }}>KI-Assistent</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h3 style={{ fontSize: '16px', color: '#6366F1', margin: 0, textShadow: '0 0 10px rgba(99, 102, 241, 0.3)' }}>KI-Assistent</h3>
+            <div className="api-quota-bar" title="Modell-Qualität / Server-Ressourcen" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ display: 'flex', gap: '4px' }}>
+                {[0, 1, 2].map(idx => (
+                  <div key={idx} style={{
+                    width: '18px', height: '6px', borderRadius: '3px',
+                    background: idx < (3 - activeModelLevel) ? '#10b981' : 'rgba(255,255,255,0.1)',
+                    boxShadow: idx < (3 - activeModelLevel) ? '0 0 8px rgba(16, 185, 129, 0.4)' : 'none',
+                    transition: 'all 0.3s ease'
+                  }} />
+                ))}
+              </div>
+              <span style={{ fontSize: '12px', color: '#94a3b8', fontFamily: 'Fira Code, monospace' }}>
+                {activeModelLevel === 0 ? '100%' : activeModelLevel === 1 ? '66%' : activeModelLevel === 2 ? '33%' : '0%'}
+              </span>
+            </div>
+          </div>
           <div className="chat-messages inner-glass-box" style={{ flex: 1, borderRadius: '24px', padding: '16px', overflowY: 'auto', border: '1px solid rgba(255,255,255,0.05)' }}>
             {chatHistory.length === 0 && (
               <div className="info" style={{ marginBottom: '16px', lineHeight: '1.5' }}>
@@ -471,8 +488,8 @@ function App() {
             )}
             <div ref={chatMessagesEndRef} />
           </div>
-          {showPresets && (
-            <div className="fade-in-presets" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '16px' }}>
+          <div className={`presets-wrapper ${showPresets ? 'open' : ''}`}>
+            <div className="presets-inner" style={{ display: 'flex', flexDirection: 'column', gap: '8px', opacity: showPresets ? 1 : 0, transition: 'opacity 0.4s ease 0.1s', overflow: 'hidden' }}>
               <button 
                 onClick={() => handleSendChat("Wie fange ich an?")}
                 className="preset-btn btn-glass"
@@ -504,7 +521,7 @@ function App() {
                 <Wand2 size={16} color="var(--accent)" /> Was könnte man an meinem Code verbessern?
               </button>
             </div>
-          )}
+          </div>
           <div className="chat-input" style={{ display: 'flex', marginTop: '16px', gap: '8px' }}>
             <input 
               type="text" 

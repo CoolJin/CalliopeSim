@@ -609,13 +609,16 @@ body {
   backdrop-filter: blur(32px) !important;
 }
 
-@keyframes fadeInPreset {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+.presets-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: 0;
 }
 
-.fade-in-presets {
-  animation: fadeInPreset 1s ease-out forwards;
+.presets-wrapper.open {
+  grid-template-rows: 1fr;
+  margin-top: 16px;
 }
 
 @keyframes messageAppear {

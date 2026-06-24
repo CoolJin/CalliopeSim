@@ -85,15 +85,23 @@ Du kannst diese Befehle dem Nutzer jederzeit vorschlagen, wenn er danach fragt o
           // Füge die aktuelle User-Nachricht hinzu
           formattedHistory.push({ role: 'user', parts: [{ text: userMessage }] });
 
-          const response = await ai.models.generateContent({
-            model: modelName,
-            contents: formattedHistory,
-            config: {
-              systemInstruction: systemInstruction,
-              maxOutputTokens: 1000,
-              temperature: 0.2,
-            }
+          // Timeout-Wrapper, um auf keinen Fall lange zu hängen (z.B. bei 503 Errors)
+          const timeoutPromise = new Promise<never>((_, reject) => {
+            setTimeout(() => reject(new Error("Timeout: Modell antwortet zu langsam")), 7000);
           });
+
+          const response = await Promise.race([
+            ai.models.generateContent({
+              model: modelName,
+              contents: formattedHistory,
+              config: {
+                systemInstruction: systemInstruction,
+                maxOutputTokens: 1000,
+                temperature: 0.2,
+              }
+            }),
+            timeoutPromise
+          ]) as any;
 
           const remainingCapacity = 100 - (attemptCount * 10);
           console.log(`Successfully used model ${modelName} with API Key ${keyIndex + 1}. Capacity: ${remainingCapacity}%`);

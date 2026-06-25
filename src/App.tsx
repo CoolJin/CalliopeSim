@@ -307,6 +307,9 @@ function App() {
       const consoleOutput = logs.map(l => l.text).join('\n');
       const { text: responseText, remainingCapacity } = await geminiService.sendMessage(userMsg, chatHistory, code, consoleOutput);
       
+      // Wenn der Chat während der Anfrage vom Nutzer gelöscht wurde, brechen wir hier ab
+      if (chatHistoryRef.current.length === 0) return;
+
       setApiCapacity(remainingCapacity);
       let response = responseText;
 
@@ -501,6 +504,7 @@ function App() {
                 setChatHistory([]);
                 setDynamicPresets([]);
                 setShowPresets(true);
+                setIsTyping(false);
                 localStorage.removeItem('calliope_chat_history');
                 localStorage.removeItem('calliope_dynamic_presets');
               }}

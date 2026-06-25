@@ -516,7 +516,8 @@ function App() {
               </div>
             </div>
             {apiCapacity !== null && (
-              <div className="api-quota-bar" title="Modell-Qualität / Server-Ressourcen" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="api-quota-bar" title="KI-Kontingent" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>KI-Kontingent</span>
                 <div style={{ 
                   width: '60px', height: '6px', background: 'rgba(255,255,255,0.1)', 
                   borderRadius: '3px', overflow: 'hidden' 

@@ -181,8 +181,7 @@ export class CalliopeInterpreter {
             `${m}.spi.`,
             `${m}.messageBus.`,
             `${m}.storage.`,
-            `${m}.systemTime`,
-            `${m}.random`
+            `${m}.systemTime`
           ];
           
           const knownSupported = [
@@ -211,7 +210,8 @@ export class CalliopeInterpreter {
             `${m}.init`,
             `${m}.sleep`,
             `${m}.soundmotor.soundOn`,
-            `${m}.soundmotor.soundOff`
+            `${m}.soundmotor.soundOff`,
+            `${m}.random`
           ];
           
           const isSupported = knownSupported.some(name => funcName === name || funcName.startsWith(name));

@@ -437,13 +437,10 @@ function App() {
                 className="btn-glass btn-glass-danger cyto-cancel"
                 style={{ borderRadius: '18px', cursor: isTyping ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px', opacity: isTyping ? 0.5 : 1, padding: '10px' }}
               >
-                <X size={16} /> <span>{confirmResetCountdown}</span>
+                <X size={16} /> <span key={confirmResetCountdown} className="countdown-flip">{confirmResetCountdown}</span>
               </button>
-              <div 
-                className="cube-container cyto-main"
-                style={{ height: '40px', padding: 0, cursor: isTyping ? 'not-allowed' : 'pointer' }}
+              <button 
                 onClick={() => {
-                  if (isTyping) return;
                   if (confirmResetCountdown === null) {
                     setConfirmResetCountdown(5);
                   } else {
@@ -452,22 +449,16 @@ function App() {
                   }
                 }}
                 title={confirmResetCountdown === null ? "Code auf Standard zurücksetzen" : "Zurücksetzen bestätigen"}
+                disabled={isTyping}
+                className="btn-glass btn-glass-danger cyto-main"
+                style={{ padding: '10px 16px', borderRadius: '18px', cursor: isTyping ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', opacity: isTyping ? 0.5 : 1 }}
               >
-                <div className={`cube ${confirmResetCountdown !== null ? 'hover-btn' : ''}`} style={{ transition: 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
-                  <div 
-                    className="cube-face front btn-glass btn-glass-danger" 
-                    style={{ height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', borderRadius: '18px', opacity: isTyping ? 0.5 : 1, border: '1px solid rgba(244, 63, 94, 0.2)' }}
-                  >
-                    <RotateCcw size={16} /> Code zurücksetzen
-                  </div>
-                  <div 
-                    className="cube-face bottom bottom-btn btn-glass btn-glass-danger" 
-                    style={{ height: '100%', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', borderRadius: '18px', opacity: isTyping ? 0.5 : 1, border: '1px solid rgba(244, 63, 94, 0.2)', backgroundColor: 'rgba(244, 63, 94, 0.1)' }}
-                  >
-                    <Check size={16} /> Zurücksetzen
-                  </div>
-                </div>
-              </div>
+                {confirmResetCountdown === null ? (
+                  <><RotateCcw size={16} /> Code zurücksetzen</>
+                ) : (
+                  <><Check size={16} /> Zurücksetzen</>
+                )}
+              </button>
             </div>
           </div>
           <CodeMirror

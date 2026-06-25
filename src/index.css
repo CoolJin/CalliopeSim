@@ -730,3 +730,14 @@ body {
 .cube-face.bottom-btn {
   transform: rotateX(-90deg) translateZ(20px);
 }
+
+@keyframes blockFlip {
+  0% { transform: translateY(-10px) rotateX(90deg); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translateY(0) rotateX(0deg); opacity: 1; }
+}
+.countdown-flip {
+  display: inline-block;
+  animation: blockFlip 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  transform-origin: center center;
+}

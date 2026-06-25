@@ -494,9 +494,6 @@ export class CalliopeInterpreter {
       else if (funcName?.startsWith('MicroBitColor')) {
         return 0;
       }
-      else {
-        throw new Error(`Unerwartete Funktion während der Ausführung: ${funcName}`);
-      }
     }
 
     return this.evaluateExpression(node);

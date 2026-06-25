@@ -722,3 +722,11 @@ body {
 .cyto-container.split .cyto-main {
   min-width: 140px;
 }
+
+/* 40px height cube for buttons */
+.cube.hover-btn {
+  transform: translateY(-20px) rotateX(90deg);
+}
+.cube-face.bottom-btn {
+  transform: rotateX(-90deg) translateZ(20px);
+}

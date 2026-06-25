@@ -393,7 +393,7 @@ function App() {
           made by Colin
         </div>
         <div className="floating-panel editor-panel" style={{ position: 'relative' }}>
-          <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10, display: 'flex', gap: '8px' }}>
+          <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
             <button 
               onClick={() => handleSendChat("Was könnte man an meinem Code verbessern?")}
               title="KI nach Tipps fragen"
@@ -411,6 +411,19 @@ function App() {
               style={{ padding: '10px 16px', borderRadius: '18px', cursor: isTyping ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', opacity: isTyping ? 0.5 : 1 }}
             >
               <AlignLeft size={16} /> Formatieren
+            </button>
+            <button 
+              onClick={() => {
+                if (window.confirm("Bist du sicher, dass du den Code auf den Standard zurücksetzen möchtest? Dein aktueller Code geht dabei verloren.")) {
+                  setCode(DEFAULT_CODE);
+                }
+              }}
+              title="Code auf Standard zurücksetzen"
+              disabled={isTyping}
+              className="btn-glass btn-glass-danger"
+              style={{ padding: '10px 16px', borderRadius: '18px', cursor: isTyping ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', opacity: isTyping ? 0.5 : 1 }}
+            >
+              <RotateCcw size={16} /> Code zurücksetzen
             </button>
           </div>
           <CodeMirror

@@ -52,7 +52,11 @@ WHITELIST CALLIOPE BEFEHLE (Keine anderen erfinden!):
 - _uBit.buttonAB.isPressed()
 - _uBit.soundmotor.soundOn(frequenz)
 - _uBit.soundmotor.soundOff()
-- _uBit.random(max)`;
+- _uBit.random(max)
+
+UNTERSTÜTZTE C++ FEATURES:
+- Arrays: int arr[] = {1, 2}; (Lesen & Schreiben via arr[i])
+- Mathe: abs(x), round(x), sqrt(x), pow(x, y), min(x, y), max(x, y)`;
 
     // Modelle absteigend nach Qualität sortiert
     const MODELS = [

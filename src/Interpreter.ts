@@ -166,7 +166,7 @@ export class CalliopeInterpreter {
       
       if (funcName) {
         // Global functions
-        if (funcName === 'release_fiber' || funcName === 'MicroBitColor') {
+        if (['release_fiber', 'MicroBitColor', 'abs', 'round', 'sqrt', 'pow', 'min', 'max'].includes(funcName)) {
            // Supported globally
         } else if (this.microBitName) {
           const m = this.microBitName;
@@ -288,11 +288,16 @@ export class CalliopeInterpreter {
   }
 
   private walkDeclaration(node: SyntaxNode) {
-    // Basic declaration support: int x = 5;
-    // We only care about variables the user defines, which might be in the Open Roberta output.
+    // Basic declaration support: int x = 5; or int arr[] = {1, 2};
     const declarator = node.childForFieldName('declarator');
     if (declarator && declarator.type === 'init_declarator') {
-      const name = declarator.childForFieldName('declarator')?.text;
+      let nameNode = declarator.childForFieldName('declarator');
+      let name = nameNode?.text;
+      
+      if (nameNode && nameNode.type === 'array_declarator') {
+        name = nameNode.childForFieldName('declarator')?.text;
+      }
+
       const valueNode = declarator.childForFieldName('value');
       if (name && valueNode) {
         const val = this.evaluateExpression(valueNode);
@@ -498,7 +503,11 @@ export class CalliopeInterpreter {
   }
 
   private evaluateExpression(node: SyntaxNode): any {
-    if (!node) return null;
+    if (!node) return undefined;
+
+    if (node.type === 'initializer_list') {
+      return node.namedChildren.map(child => this.evaluateExpression(child));
+    }
 
     if (node.type === 'number_literal') {
       return Number(node.text);
@@ -524,11 +533,26 @@ export class CalliopeInterpreter {
     if (node.type === 'assignment_expression') {
       const leftNode = node.childForFieldName('left');
       const rightNode = node.childForFieldName('right');
-      if (leftNode && rightNode && leftNode.type === 'identifier') {
-        const val = this.evaluateExpression(rightNode);
-        this.variables[leftNode.text] = val;
-        this.api.setState({ variables: { ...this.variables } });
-        return val;
+      if (leftNode && rightNode) {
+        if (leftNode.type === 'identifier') {
+          const val = this.evaluateExpression(rightNode);
+          this.variables[leftNode.text] = val;
+          this.api.setState({ variables: { ...this.variables } });
+          return val;
+        } else if (leftNode.type === 'subscript_expression') {
+          const arrNode = leftNode.childForFieldName('argument');
+          const indexNode = leftNode.childForFieldName('index');
+          if (arrNode && indexNode && arrNode.type === 'identifier') {
+            const arr = this.variables[arrNode.text];
+            const index = this.evaluateExpression(indexNode);
+            const val = this.evaluateExpression(rightNode);
+            if (Array.isArray(arr)) {
+              arr[index] = val;
+              this.api.setState({ variables: { ...this.variables } });
+              return val;
+            }
+          }
+        }
       }
     }
 
@@ -538,6 +562,16 @@ export class CalliopeInterpreter {
       if (operator === '!') return !operand;
       if (operator === '-') return -operand;
       if (operator === '+') return +operand;
+      if (operator === '~') return ~operand;
+    }
+
+    if (node.type === 'subscript_expression') {
+      const argument = this.evaluateExpression(node.childForFieldName('argument'));
+      const index = this.evaluateExpression(node.childForFieldName('index'));
+      if (Array.isArray(argument)) {
+        return argument[index];
+      }
+      return undefined;
     }
 
     if (node.type === 'update_expression') {
@@ -560,6 +594,25 @@ export class CalliopeInterpreter {
            this.variables[argument.text] = val - 1;
            this.api.setState({ variables: { ...this.variables } });
            return val - 1;
+        }
+      } else if (argument && argument.type === 'subscript_expression') {
+        const arrNode = argument.childForFieldName('argument');
+        const indexNode = argument.childForFieldName('index');
+        if (arrNode && indexNode && arrNode.type === 'identifier') {
+          const arr = this.variables[arrNode.text];
+          const index = this.evaluateExpression(indexNode);
+          if (Array.isArray(arr)) {
+            let val = arr[index] || 0;
+            if (node.text.endsWith('++') || node.text.startsWith('++')) {
+               arr[index] = val + 1;
+               this.api.setState({ variables: { ...this.variables } });
+               return node.text.endsWith('++') ? val : val + 1;
+            } else if (node.text.endsWith('--') || node.text.startsWith('--')) {
+               arr[index] = val - 1;
+               this.api.setState({ variables: { ...this.variables } });
+               return node.text.endsWith('--') ? val : val - 1;
+            }
+          }
         }
       }
     }
@@ -600,6 +653,11 @@ export class CalliopeInterpreter {
           }
           return left / right;
         case '%': return left % right;
+        case '&': return left & right;
+        case '|': return left | right;
+        case '^': return left ^ right;
+        case '<<': return left << right;
+        case '>>': return left >> right;
       }
     }
 
@@ -607,6 +665,14 @@ export class CalliopeInterpreter {
       const funcName = node.childForFieldName('function')?.text;
       const argumentsNode = node.childForFieldName('arguments');
       const args = argumentsNode?.namedChildren.map(arg => this.evaluateExpression(arg)) || [];
+
+      // Global Math Functions
+      if (funcName === 'abs') return Math.abs(Number(args[0]) || 0);
+      if (funcName === 'round') return Math.round(Number(args[0]) || 0);
+      if (funcName === 'sqrt') return Math.sqrt(Number(args[0]) || 0);
+      if (funcName === 'pow') return Math.pow(Number(args[0]) || 0, Number(args[1]) || 0);
+      if (funcName === 'min') return Math.min(Number(args[0]) || 0, Number(args[1]) || 0);
+      if (funcName === 'max') return Math.max(Number(args[0]) || 0, Number(args[1]) || 0);
 
       if (this.microBitName) {
         const m = this.microBitName;

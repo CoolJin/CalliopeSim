@@ -437,7 +437,7 @@ function App() {
                 className="btn-glass btn-glass-danger cyto-cancel"
                 style={{ borderRadius: '18px', cursor: isTyping ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px', opacity: isTyping ? 0.5 : 1, padding: '10px' }}
               >
-                <X size={16} /> <span>({confirmResetCountdown})</span>
+                <X size={16} /> <span>{confirmResetCountdown}</span>
               </button>
               <button 
                 onClick={() => {

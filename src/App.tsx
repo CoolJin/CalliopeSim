@@ -489,7 +489,7 @@ function App() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div 
               className="cube-container"
-              style={{ width: '160px' }}
+              style={{ width: '200px' }}
               onMouseEnter={() => setIsHoveringHeader(true)}
               onMouseLeave={() => setIsHoveringHeader(false)}
               onClick={() => {
@@ -507,10 +507,10 @@ function App() {
               }}
             >
               <div className={`cube ${isHoveringHeader ? 'hovered' : ''}`}>
-                <div className="cube-face front" style={{ fontSize: '16px', color: '#6366F1', fontWeight: 600, textShadow: '0 0 10px rgba(99, 102, 241, 0.3)' }}>
+                <div className="cube-face front" style={{ fontSize: '16px', color: '#6366F1', fontWeight: 600, textShadow: '0 0 10px rgba(99, 102, 241, 0.3)', whiteSpace: 'nowrap' }}>
                   KI-Assistent
                 </div>
-                <div className="cube-face bottom" style={{ fontSize: '16px', color: '#f43f5e', fontWeight: 600, textShadow: '0 0 10px rgba(244, 63, 94, 0.3)' }}>
+                <div className="cube-face bottom" style={{ fontSize: '16px', color: '#f43f5e', fontWeight: 600, textShadow: '0 0 10px rgba(244, 63, 94, 0.3)', whiteSpace: 'nowrap' }}>
                   <RotateCcw size={16} /> Neuen Chat starten
                 </div>
               </div>

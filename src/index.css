@@ -637,3 +637,48 @@ body {
 .spin-animation { 
   animation: spin-360 0.5s ease-in-out; 
 }
+
+
+/* Cube Flip Animation */
+.cube-container {
+  perspective: 1000px;
+  height: 24px;
+  cursor: pointer;
+}
+.cube {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform: translateZ(-12px);
+}
+.cube.hovered {
+  transform: translateZ(-12px) rotateX(90deg);
+}
+.cube-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  backface-visibility: hidden;
+}
+.cube-face.front {
+  transform: rotateY(0deg) translateZ(12px);
+}
+.cube-face.bottom {
+  transform: rotateX(-90deg) translateZ(12px);
+}
+
+/* Chat fade out transition */
+.chat-fade-container {
+  transition: opacity 0.4s ease, filter 0.4s ease;
+  opacity: 1;
+  filter: blur(0px);
+}
+.chat-fade-container.fading-out {
+  opacity: 0;
+  filter: blur(4px);
+}

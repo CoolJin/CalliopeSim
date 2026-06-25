@@ -139,6 +139,7 @@ function App() {
     return [];
   });
   const [isHoveringHeader, setIsHoveringHeader] = useState(false);
+  const [isClearingChat, setIsClearingChat] = useState(false);
 
   // Check for mobile layout
   useEffect(() => {
@@ -486,37 +487,34 @@ function App() {
       <div className="middle-panel">
         <div className="floating-panel ai-chat-panel" style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 
-              style={{ 
-                fontSize: '16px', 
-                color: isHoveringHeader ? '#f43f5e' : '#6366F1', 
-                margin: 0, 
-                textShadow: isHoveringHeader ? '0 0 10px rgba(244, 63, 94, 0.3)' : '0 0 10px rgba(99, 102, 241, 0.3)',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
+            <div 
+              className="cube-container"
+              style={{ width: '160px' }}
               onMouseEnter={() => setIsHoveringHeader(true)}
               onMouseLeave={() => setIsHoveringHeader(false)}
               onClick={() => {
-                setChatHistory([]);
-                setDynamicPresets([]);
-                setShowPresets(true);
-                setIsTyping(false);
-                localStorage.removeItem('calliope_chat_history');
-                localStorage.removeItem('calliope_dynamic_presets');
+                if (chatHistory.length === 0) return;
+                setIsClearingChat(true);
+                setTimeout(() => {
+                  setChatHistory([]);
+                  setDynamicPresets([]);
+                  setShowPresets(true);
+                  setIsTyping(false);
+                  localStorage.removeItem('calliope_chat_history');
+                  localStorage.removeItem('calliope_dynamic_presets');
+                  setIsClearingChat(false);
+                }, 400); // Wait for fade out
               }}
             >
-              {isHoveringHeader ? (
-                <>
-                  <RotateCcw size={14} /> Neuen Chat starten
-                </>
-              ) : (
-                'KI-Assistent'
-              )}
-            </h3>
+              <div className={`cube ${isHoveringHeader ? 'hovered' : ''}`}>
+                <div className="cube-face front" style={{ fontSize: '16px', color: '#6366F1', fontWeight: 600, textShadow: '0 0 10px rgba(99, 102, 241, 0.3)' }}>
+                  KI-Assistent
+                </div>
+                <div className="cube-face bottom" style={{ fontSize: '16px', color: '#f43f5e', fontWeight: 600, textShadow: '0 0 10px rgba(244, 63, 94, 0.3)' }}>
+                  <RotateCcw size={16} /> Neuen Chat starten
+                </div>
+              </div>
+            </div>
             {apiCapacity !== null && (
               <div className="api-quota-bar" title="Modell-Qualität / Server-Ressourcen" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div style={{ 
@@ -536,9 +534,9 @@ function App() {
               </div>
             )}
           </div>
-          <div className="chat-messages inner-glass-box" style={{ flex: 1, borderRadius: '24px', padding: '16px', overflowY: 'auto', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <div className={`chat-messages inner-glass-box chat-fade-container ${isClearingChat ? 'fading-out' : ''}`} style={{ flex: 1, borderRadius: '24px', padding: '16px', overflowY: 'auto', border: '1px solid rgba(255,255,255,0.05)' }}>
             {chatHistory.length === 0 && (
-              <div className="info" style={{ marginBottom: '16px', lineHeight: '1.5' }}>
+              <div className="info animate-fade-in" style={{ marginBottom: '16px', lineHeight: '1.5' }}>
                 Hallo! Wie kann ich dir heute beim Programmieren helfen? Ich sehe deinen C++ Code und deine Fehler automatisch.
               </div>
             )}
@@ -583,7 +581,7 @@ function App() {
             )}
             <div ref={chatMessagesEndRef} />
           </div>
-          <div className={`presets-wrapper ${showPresets && (chatHistory.length === 0 || dynamicPresets.length > 0) ? 'open' : ''}`}>
+          <div className={`presets-wrapper chat-fade-container ${isClearingChat ? 'fading-out' : ''} ${showPresets && (chatHistory.length === 0 || dynamicPresets.length > 0) ? 'open' : ''}`}>
             <div className="presets-inner" style={{ 
               display: 'flex', flexDirection: 'column', gap: '8px', 
               opacity: showPresets && (chatHistory.length === 0 || dynamicPresets.length > 0) ? 1 : 0, transition: 'opacity 0.4s ease 0.1s', 

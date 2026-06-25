@@ -93,7 +93,9 @@ const TypewriterText = ({ text, speed = 15, onComplete }: { text: string, speed?
 };
 
 function App() {
-  const [code, setCode] = useState(DEFAULT_CODE);
+  const [code, setCode] = useState(() => {
+    return localStorage.getItem('calliope_code') || DEFAULT_CODE;
+  });
   const [state, setState] = useState<CalliopeState>(initialCalliopeState);
   const [btnA, setBtnA] = useState(false);
   const [btnB, setBtnB] = useState(false);
@@ -101,10 +103,29 @@ function App() {
   const [isRunning, setIsRunning] = useState(false);
 
   // Chatbot states
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>(() => {
+    const saved = localStorage.getItem('calliope_chat_history');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
+  });
   const [chatInput, setChatInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [showPresets, setShowPresets] = useState(true);
+  const [showPresets, setShowPresets] = useState(() => {
+    const saved = localStorage.getItem('calliope_chat_history');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.length > 0) return false;
+      } catch (e) { }
+    }
+    return true;
+  });
   const [apiCapacity, setApiCapacity] = useState<number | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [showPostRunPrompt, setShowPostRunPrompt] = useState(false);
@@ -134,6 +155,15 @@ function App() {
   useEffect(() => { logsRef.current = logs; }, [logs]);
   useEffect(() => { chatHistoryRef.current = chatHistory; }, [chatHistory]);
   useEffect(() => { stateRef.current = state; }, [state]);
+
+  // Persist code and chat history
+  useEffect(() => {
+    localStorage.setItem('calliope_code', code);
+  }, [code]);
+
+  useEffect(() => {
+    localStorage.setItem('calliope_chat_history', JSON.stringify(chatHistory));
+  }, [chatHistory]);
 
   const handleTypewriterComplete = useCallback(() => {
     if (showPresetsTimerRef.current) clearTimeout(showPresetsTimerRef.current);

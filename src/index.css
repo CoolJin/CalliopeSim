@@ -732,7 +732,7 @@ body {
 }
 
 @keyframes blockFlip {
-  0% { transform: translateY(-10px) rotateX(90deg); opacity: 0; }
+  0% { transform: translateY(10px) rotateX(-90deg); opacity: 0; }
   20% { opacity: 1; }
   100% { transform: translateY(0) rotateX(0deg); opacity: 1; }
 }

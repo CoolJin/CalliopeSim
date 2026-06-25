@@ -121,8 +121,9 @@ UNTERSTÜTZTE C++ FEATURES:
               timeoutPromise
             ]) as any;
 
-            const maxAttempts = PASSES.length * MODELS.length * API_KEYS.length;
-            const remainingCapacity = Math.max(0, Math.round(100 - (attemptCount / maxAttempts) * 100));
+            const totalCombos = MODELS.length * API_KEYS.length;
+            const currentComboIndex = (modelIndex * API_KEYS.length) + keyIndex;
+            const remainingCapacity = Math.round(100 - (currentComboIndex / totalCombos) * 100);
             console.log(`Successfully used model ${modelName} with API Key ${keyIndex + 1} during ${pass.name}. Capacity: ${remainingCapacity}%`);
             return { text: response.text || "", remainingCapacity };
             

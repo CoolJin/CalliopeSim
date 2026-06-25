@@ -437,7 +437,13 @@ function App() {
                 className="btn-glass btn-glass-danger cyto-cancel"
                 style={{ borderRadius: '18px', cursor: isTyping ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px', opacity: isTyping ? 0.5 : 1, padding: '10px' }}
               >
-                <X size={16} /> <span key={confirmResetCountdown} className="countdown-flip">{confirmResetCountdown}</span>
+                <X size={16} /> 
+                <span className="countdown-cube-container">
+                  <div key={confirmResetCountdown} className="countdown-cube">
+                    <div className="countdown-face front">{confirmResetCountdown === 5 ? "" : confirmResetCountdown !== null ? confirmResetCountdown + 1 : ""}</div>
+                    <div className="countdown-face bottom">{confirmResetCountdown}</div>
+                  </div>
+                </span>
               </button>
               <button 
                 onClick={() => {

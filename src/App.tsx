@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Square, AlertCircle, Info, CheckCircle, Copy, AlignLeft, Sparkles, Bug, Rocket, BookOpen, Wand2, HelpCircle, Volume2, VolumeX, RotateCcw } from 'lucide-react';
+import { Play, Square, AlertCircle, Info, CheckCircle, Copy, AlignLeft, Sparkles, Bug, Rocket, BookOpen, Wand2, HelpCircle, Volume2, VolumeX, RotateCcw, Check, X } from 'lucide-react';
 import CodeMirror from '@uiw/react-codemirror';
 import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { cpp } from '@codemirror/lang-cpp';
@@ -140,6 +140,7 @@ function App() {
   });
   const [isHoveringHeader, setIsHoveringHeader] = useState(false);
   const [isClearingChat, setIsClearingChat] = useState(false);
+  const [confirmResetCountdown, setConfirmResetCountdown] = useState<number | null>(null);
 
   // Check for mobile layout
   useEffect(() => {
@@ -196,6 +197,22 @@ function App() {
 
   const interpreterRef = useRef<CalliopeInterpreter | null>(null);
   const cmRef = useRef<ReactCodeMirrorRef>(null);
+
+  // Countdown effect for the cytokinesis reset button
+  useEffect(() => {
+    if (confirmResetCountdown === null) return;
+    
+    if (confirmResetCountdown <= 0) {
+      setConfirmResetCountdown(null);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setConfirmResetCountdown(prev => prev !== null ? prev - 1 : null);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [confirmResetCountdown]);
 
   useEffect(() => {
     // Initialize interpreter
@@ -412,19 +429,37 @@ function App() {
             >
               <AlignLeft size={16} /> Formatieren
             </button>
-            <button 
-              onClick={() => {
-                if (window.confirm("Bist du sicher, dass du den Code auf den Standard zurücksetzen möchtest? Dein aktueller Code geht dabei verloren.")) {
-                  setCode(DEFAULT_CODE);
-                }
-              }}
-              title="Code auf Standard zurücksetzen"
-              disabled={isTyping}
-              className="btn-glass btn-glass-danger"
-              style={{ padding: '10px 16px', borderRadius: '18px', cursor: isTyping ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', opacity: isTyping ? 0.5 : 1 }}
-            >
-              <RotateCcw size={16} /> Code zurücksetzen
-            </button>
+            <div className={`cyto-container ${confirmResetCountdown !== null ? 'split' : ''}`}>
+              <button 
+                onClick={() => setConfirmResetCountdown(null)}
+                title="Abbrechen"
+                disabled={isTyping}
+                className="btn-glass btn-glass-danger cyto-cancel"
+                style={{ borderRadius: '18px', cursor: isTyping ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px', opacity: isTyping ? 0.5 : 1, padding: '10px' }}
+              >
+                <X size={16} /> <span>({confirmResetCountdown})</span>
+              </button>
+              <button 
+                onClick={() => {
+                  if (confirmResetCountdown === null) {
+                    setConfirmResetCountdown(5);
+                  } else {
+                    setCode(DEFAULT_CODE);
+                    setConfirmResetCountdown(null);
+                  }
+                }}
+                title={confirmResetCountdown === null ? "Code auf Standard zurücksetzen" : "Zurücksetzen bestätigen"}
+                disabled={isTyping}
+                className="btn-glass btn-glass-danger cyto-main"
+                style={{ padding: '10px 16px', borderRadius: '18px', cursor: isTyping ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', opacity: isTyping ? 0.5 : 1 }}
+              >
+                {confirmResetCountdown === null ? (
+                  <><RotateCcw size={16} /> Code zurücksetzen</>
+                ) : (
+                  <><Check size={16} /> Zurücksetzen</>
+                )}
+              </button>
+            </div>
           </div>
           <CodeMirror
             ref={cmRef}

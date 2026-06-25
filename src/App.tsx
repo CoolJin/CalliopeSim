@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Square, AlertCircle, Info, CheckCircle, Copy, AlignLeft, Sparkles, Bug, Rocket, BookOpen, Wand2, HelpCircle, Volume2, VolumeX } from 'lucide-react';
+import { Play, Square, AlertCircle, Info, CheckCircle, Copy, AlignLeft, Sparkles, Bug, Rocket, BookOpen, Wand2, HelpCircle, Volume2, VolumeX, RotateCcw } from 'lucide-react';
 import CodeMirror from '@uiw/react-codemirror';
 import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 import { cpp } from '@codemirror/lang-cpp';
@@ -131,6 +131,14 @@ function App() {
   const [showPostRunPrompt, setShowPostRunPrompt] = useState(false);
   const [isConsoleButtonPulsing, setIsConsoleButtonPulsing] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [dynamicPresets, setDynamicPresets] = useState<string[]>(() => {
+    const saved = localStorage.getItem('calliope_dynamic_presets');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { return []; }
+    }
+    return [];
+  });
+  const [isHoveringHeader, setIsHoveringHeader] = useState(false);
 
   // Check for mobile layout
   useEffect(() => {
@@ -164,6 +172,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem('calliope_chat_history', JSON.stringify(chatHistory));
   }, [chatHistory]);
+
+  useEffect(() => {
+    localStorage.setItem('calliope_dynamic_presets', JSON.stringify(dynamicPresets));
+  }, [dynamicPresets]);
 
   const handleTypewriterComplete = useCallback(() => {
     if (showPresetsTimerRef.current) clearTimeout(showPresetsTimerRef.current);
@@ -282,6 +294,8 @@ function App() {
     setChatHistory(prev => [...prev, { role: 'user', text: userMsg }]);
     setIsTyping(true);
 
+    setDynamicPresets([]);
+
     const view = cmRef.current?.view;
     
     // Clear line highlights when asking a new question
@@ -295,6 +309,14 @@ function App() {
       
       setApiCapacity(remainingCapacity);
       let response = responseText;
+
+      const newPresets: string[] = [];
+      const presetRegex = /<preset>([\s\S]*?)<\/preset>/g;
+      response = response.replace(presetRegex, (_match, presetText) => {
+        if (presetText.trim()) newPresets.push(presetText.trim());
+        return '';
+      });
+      setDynamicPresets(newPresets);
 
       if (view) {
         let linesToMark: number[] = [];
@@ -315,7 +337,7 @@ function App() {
         }
       }
 
-      setChatHistory(prev => [...prev, { role: 'model', text: response }]);
+      setChatHistory(prev => [...prev, { role: 'model', text: response.trim() }]);
     } catch (e: any) {
       setApiCapacity(0);
       let errorMsg = e.message || String(e);
@@ -461,7 +483,36 @@ function App() {
       <div className="middle-panel">
         <div className="floating-panel ai-chat-panel" style={{ flex: 1, padding: '24px', display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '16px', color: '#6366F1', margin: 0, textShadow: '0 0 10px rgba(99, 102, 241, 0.3)' }}>KI-Assistent</h3>
+            <h3 
+              style={{ 
+                fontSize: '16px', 
+                color: isHoveringHeader ? '#f43f5e' : '#6366F1', 
+                margin: 0, 
+                textShadow: isHoveringHeader ? '0 0 10px rgba(244, 63, 94, 0.3)' : '0 0 10px rgba(99, 102, 241, 0.3)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+              onMouseEnter={() => setIsHoveringHeader(true)}
+              onMouseLeave={() => setIsHoveringHeader(false)}
+              onClick={() => {
+                setChatHistory([]);
+                setDynamicPresets([]);
+                setShowPresets(true);
+                localStorage.removeItem('calliope_chat_history');
+                localStorage.removeItem('calliope_dynamic_presets');
+              }}
+            >
+              {isHoveringHeader ? (
+                <>
+                  <RotateCcw size={14} /> Neuen Chat starten
+                </>
+              ) : (
+                'KI-Assistent'
+              )}
+            </h3>
             {apiCapacity !== null && (
               <div className="api-quota-bar" title="Modell-Qualität / Server-Ressourcen" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div style={{ 
@@ -528,42 +579,56 @@ function App() {
             )}
             <div ref={chatMessagesEndRef} />
           </div>
-          <div className={`presets-wrapper ${showPresets ? 'open' : ''}`}>
+          <div className={`presets-wrapper ${showPresets && (chatHistory.length === 0 || dynamicPresets.length > 0) ? 'open' : ''}`}>
             <div className="presets-inner" style={{ 
               display: 'flex', flexDirection: 'column', gap: '8px', 
-              opacity: showPresets ? 1 : 0, transition: 'opacity 0.4s ease 0.1s', 
+              opacity: showPresets && (chatHistory.length === 0 || dynamicPresets.length > 0) ? 1 : 0, transition: 'opacity 0.4s ease 0.1s', 
               overflow: 'hidden', padding: '12px', margin: '-12px' 
             }}>
-              <button 
-                onClick={() => handleSendChat("Wie fange ich an?")}
-                className="preset-btn btn-glass"
-              >
-                <Rocket size={16} color="var(--accent)" /> Wie fange ich an?
-              </button>
-              <button 
-                onClick={() => handleSendChat("Was sind die wichtigsten Befehle?")}
-                className="preset-btn btn-glass"
-              >
-                <BookOpen size={16} color="var(--accent)" /> Was sind die wichtigsten Befehle?
-              </button>
-              <button 
-                onClick={() => handleSendChat("Gebe mir eine Programmieraufgabe.")}
-                className="preset-btn btn-glass"
-              >
-                <Info size={16} color="var(--accent)" /> Gebe mir eine Programmieraufgabe.
-              </button>
-              <button 
-                onClick={() => handleSendChat("Warum funktioniert mein Code nicht?")}
-                className="preset-btn btn-glass"
-              >
-                <Bug size={16} color="var(--accent)" /> Warum funktioniert mein Code nicht?
-              </button>
-              <button 
-                onClick={() => handleSendChat("Was könnte man an meinem Code verbessern?")}
-                className="preset-btn btn-glass"
-              >
-                <Wand2 size={16} color="var(--accent)" /> Was könnte man an meinem Code verbessern?
-              </button>
+              {chatHistory.length === 0 ? (
+                <>
+                  <button 
+                    onClick={() => handleSendChat("Wie fange ich an?")}
+                    className="preset-btn btn-glass"
+                  >
+                    <Rocket size={16} color="var(--accent)" /> Wie fange ich an?
+                  </button>
+                  <button 
+                    onClick={() => handleSendChat("Was sind die wichtigsten Befehle?")}
+                    className="preset-btn btn-glass"
+                  >
+                    <BookOpen size={16} color="var(--accent)" /> Was sind die wichtigsten Befehle?
+                  </button>
+                  <button 
+                    onClick={() => handleSendChat("Gebe mir eine Programmieraufgabe.")}
+                    className="preset-btn btn-glass"
+                  >
+                    <Info size={16} color="var(--accent)" /> Gebe mir eine Programmieraufgabe.
+                  </button>
+                  <button 
+                    onClick={() => handleSendChat("Warum funktioniert mein Code nicht?")}
+                    className="preset-btn btn-glass"
+                  >
+                    <Bug size={16} color="var(--accent)" /> Warum funktioniert mein Code nicht?
+                  </button>
+                  <button 
+                    onClick={() => handleSendChat("Was könnte man an meinem Code verbessern?")}
+                    className="preset-btn btn-glass"
+                  >
+                    <Wand2 size={16} color="var(--accent)" /> Was könnte man an meinem Code verbessern?
+                  </button>
+                </>
+              ) : (
+                dynamicPresets.map((preset, idx) => (
+                  <button 
+                    key={idx}
+                    onClick={() => handleSendChat(preset)}
+                    className="preset-btn btn-glass"
+                  >
+                    <Sparkles size={16} color="var(--accent)" /> {preset}
+                  </button>
+                ))
+              )}
             </div>
           </div>
           <div className="chat-input" style={{ display: 'flex', marginTop: '16px', gap: '8px' }}>

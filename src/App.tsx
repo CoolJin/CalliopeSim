@@ -529,7 +529,7 @@ function App() {
                     transition: 'width 0.4s ease, background 0.4s ease' 
                   }} />
                 </div>
-                <span style={{ fontSize: '12px', color: '#94a3b8', fontFamily: 'Fira Code, monospace', minWidth: '32px', textAlign: 'right' }}>
+                <span style={{ fontSize: '12px', color: '#94a3b8', fontFamily: 'Fira Code, monospace', minWidth: '32px', textAlign: 'left' }}>
                   {apiCapacity}%
                 </span>
               </div>

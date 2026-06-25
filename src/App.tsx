@@ -287,6 +287,7 @@ function App() {
 
       setChatHistory(prev => [...prev, { role: 'model', text: response }]);
     } catch (e: any) {
+      setApiCapacity(0);
       let errorMsg = e.message || String(e);
       if (errorMsg.includes("503") || errorMsg.includes("high demand") || errorMsg.includes("overloaded")) {
         errorMsg = "Die Server der KI sind gerade stark ausgelastet. Bitte versuche es in ein paar Sekunden nochmal.";

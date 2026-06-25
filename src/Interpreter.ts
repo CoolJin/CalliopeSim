@@ -636,6 +636,13 @@ export class CalliopeInterpreter {
           }
           return 0;
         }
+
+        // Random
+        if (funcName === `${m}.random`) {
+          const max = Math.trunc(Number(args[0]) || 0);
+          if (max <= 0) return 0;
+          return Math.floor(Math.random() * max);
+        }
       }
     }
 

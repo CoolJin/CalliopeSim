@@ -51,7 +51,8 @@ WHITELIST CALLIOPE BEFEHLE (Keine anderen erfinden!):
 - _uBit.buttonB.isPressed()
 - _uBit.buttonAB.isPressed()
 - _uBit.soundmotor.soundOn(frequenz)
-- _uBit.soundmotor.soundOff()`;
+- _uBit.soundmotor.soundOff()
+- _uBit.random(max)`;
 
     // Modelle absteigend nach Qualität sortiert
     const MODELS = [

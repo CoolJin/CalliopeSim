@@ -335,7 +335,7 @@ export class CalliopeInterpreter {
     } else {
       // Uninitialized basic type
       const typeText = node.childForFieldName('type')?.text || '';
-      if (typeText.includes('string') || typeText.includes('String') || typeText.includes('ManagedString')) {
+      if (typeText === 'ManagedString') {
          this.variables[name] = "";
       } else {
          this.variables[name] = 0;
@@ -700,7 +700,7 @@ export class CalliopeInterpreter {
       const args = argumentsNode?.namedChildren.map(arg => this.evaluateExpression(arg)) || [];
 
       // String constructors
-      if (funcName === 'ManagedString' || funcName === 'String' || funcName === 'string' || funcName === 'std::string') {
+      if (funcName === 'ManagedString') {
         return args[0] !== undefined ? String(args[0]) : '';
       }
 

@@ -852,29 +852,65 @@ function App() {
           {/* Variables tracking */}
           <div className="variables-panel">
             <h3>Variablen</h3>
-            {Object.entries(state.variables).length === 0 && (
-              <div className="var-item"><span className="var-name">Keine Variablen erfasst</span></div>
-            )}
-            {Object.entries(state.variables).map(([name, val]) => {
-              let typeStr: string = typeof val;
-              if (typeStr === 'number') {
-                typeStr = Number.isInteger(val) ? 'int' : 'float';
-              } else if (typeStr === 'boolean') {
-                typeStr = 'bool';
-              } else if (typeStr === 'string') {
-                typeStr = 'string';
+            {(() => {
+              const entries = Object.entries(state.variables);
+              const regularVars = entries.filter(([_, val]) => !Array.isArray(val));
+              const arrayVars = entries.filter(([_, val]) => Array.isArray(val));
+
+              if (entries.length === 0) {
+                return <div className="var-item"><span className="var-name">Keine Variablen erfasst</span></div>;
               }
-              
+
               return (
-                <div className="var-item" key={name}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span className="var-type">{typeStr}</span>
-                    <span className="var-name">{name}</span>
+                <div style={{ display: 'flex', gap: '16px' }}>
+                  <div style={{ flex: 1 }}>
+                    {regularVars.length > 0 && arrayVars.length > 0 && (
+                      <div style={{ margin: '0 0 8px 0', fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Basis</div>
+                    )}
+                    {regularVars.map(([name, val]) => {
+                       let typeStr: string = typeof val;
+                       if (typeStr === 'number') {
+                         typeStr = Number.isInteger(val) ? 'int' : 'float';
+                       } else if (typeStr === 'boolean') {
+                         typeStr = 'bool';
+                       } else if (typeStr === 'string') {
+                         typeStr = 'string';
+                       }
+                       return (
+                         <div className="var-item" key={name}>
+                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                             <span className="var-type">{typeStr}</span>
+                             <span className="var-name">{name}</span>
+                           </div>
+                           <span className="var-val">{typeof val === 'string' ? `"${val}"` : String(val)}</span>
+                         </div>
+                       );
+                    })}
                   </div>
-                  <span className="var-val">{typeof val === 'string' ? `"${val}"` : String(val)}</span>
+                  {arrayVars.length > 0 && (
+                    <div style={{ flex: 1, borderLeft: regularVars.length > 0 ? '1px solid rgba(255,255,255,0.1)' : 'none', paddingLeft: regularVars.length > 0 ? '16px' : '0' }}>
+                      {regularVars.length > 0 && (
+                        <div style={{ margin: '0 0 8px 0', fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Arrays</div>
+                      )}
+                      {arrayVars.map(([name, val]) => {
+                         const dims = Array.isArray(val[0]) ? '2D' : '1D';
+                         return (
+                           <div className="var-item" key={name} style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                               <span className="var-type">arr {dims}</span>
+                               <span className="var-name">{name}</span>
+                             </div>
+                             <div className="var-val" style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace', fontSize: '12px', lineHeight: '1.4', background: 'rgba(0,0,0,0.2)', padding: '6px', borderRadius: '4px', width: '100%' }}>
+                               {JSON.stringify(val).replace(/],/g, '],\n')}
+                             </div>
+                           </div>
+                         );
+                      })}
+                    </div>
+                  )}
                 </div>
               );
-            })}
+            })()}
           </div>
         </div>
       </div>

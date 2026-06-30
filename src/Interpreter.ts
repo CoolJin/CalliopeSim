@@ -288,23 +288,61 @@ export class CalliopeInterpreter {
   }
 
   private walkDeclaration(node: SyntaxNode) {
-    // Basic declaration support: int x = 5; or int arr[] = {1, 2};
     const declarator = node.childForFieldName('declarator');
-    if (declarator && declarator.type === 'init_declarator') {
-      let nameNode = declarator.childForFieldName('declarator');
-      let name = nameNode?.text;
-      
-      if (nameNode && nameNode.type === 'array_declarator') {
-        name = nameNode.childForFieldName('declarator')?.text;
-      }
+    if (!declarator) return;
 
-      const valueNode = declarator.childForFieldName('value');
-      if (name && valueNode) {
-        const val = this.evaluateExpression(valueNode);
-        this.variables[name] = val;
-        this.api.setState({ variables: { ...this.variables } });
+    let targetNode = declarator;
+    let valueNode = null;
+
+    if (declarator.type === 'init_declarator') {
+      targetNode = declarator.childForFieldName('declarator');
+      valueNode = declarator.childForFieldName('value');
+    }
+
+    let name = targetNode?.text;
+    let dimensions: number[] = [];
+
+    // Dig down through array_declarators (e.g. arr[2][2])
+    let current = targetNode;
+    while (current && current.type === 'array_declarator') {
+      const sizeNode = current.childForFieldName('size');
+      if (sizeNode) {
+        // Evaluate size. unshift because tree-sitter parses arr[2][3] as (array_declarator (array_declarator arr 2) 3)
+        dimensions.unshift(this.evaluateExpression(sizeNode) || 0);
+      }
+      current = current.childForFieldName('declarator');
+      if (current) name = current.text;
+    }
+
+    if (!name) return;
+
+    if (valueNode) {
+      const val = this.evaluateExpression(valueNode);
+      this.variables[name] = val;
+    } else if (dimensions.length > 0) {
+      // Default array initialization
+      if (dimensions.length === 1) {
+        this.variables[name] = new Array(dimensions[0]).fill(0);
+      } else if (dimensions.length === 2) {
+        const arr = new Array(dimensions[0]);
+        for (let i = 0; i < dimensions[0]; i++) {
+          arr[i] = new Array(dimensions[1]).fill(0);
+        }
+        this.variables[name] = arr;
+      } else {
+        this.variables[name] = [];
+      }
+    } else {
+      // Uninitialized basic type
+      const typeText = node.childForFieldName('type')?.text || '';
+      if (typeText.includes('string') || typeText.includes('String') || typeText.includes('ManagedString')) {
+         this.variables[name] = "";
+      } else {
+         this.variables[name] = 0;
       }
     }
+    
+    this.api.setState({ variables: { ...this.variables } });
   }
 
   private async walkForStatement(node: SyntaxNode, execId: number) {
@@ -537,17 +575,15 @@ export class CalliopeInterpreter {
           this.api.setState({ variables: { ...this.variables } });
           return val;
         } else if (leftNode.type === 'subscript_expression') {
-          const arrNode = leftNode.childForFieldName('argument');
-          const indexNode = leftNode.childForFieldName('index');
-          if (arrNode && indexNode && arrNode.type === 'identifier') {
-            const arr = this.variables[arrNode.text];
+          const arr = this.evaluateExpression(leftNode.childForFieldName('argument'));
+          const indicesList = leftNode.childForFieldName('indices');
+          const indexNode = indicesList ? indicesList.namedChildren[0] : null;
+          if (arr && indexNode && Array.isArray(arr)) {
             const index = this.evaluateExpression(indexNode);
             const val = this.evaluateExpression(rightNode);
-            if (Array.isArray(arr)) {
-              arr[index] = val;
-              this.api.setState({ variables: { ...this.variables } });
-              return val;
-            }
+            arr[index] = val;
+            this.api.setState({ variables: { ...this.variables } });
+            return val;
           }
         }
       }
@@ -564,8 +600,10 @@ export class CalliopeInterpreter {
 
     if (node.type === 'subscript_expression') {
       const argument = this.evaluateExpression(node.childForFieldName('argument'));
-      const index = this.evaluateExpression(node.childForFieldName('index'));
-      if (Array.isArray(argument)) {
+      const indicesList = node.childForFieldName('indices');
+      const indexNode = indicesList ? indicesList.namedChildren[0] : null;
+      if (indexNode && Array.isArray(argument)) {
+        const index = this.evaluateExpression(indexNode);
         return argument[index];
       }
       return undefined;
@@ -593,22 +631,20 @@ export class CalliopeInterpreter {
            return val - 1;
         }
       } else if (argument && argument.type === 'subscript_expression') {
-        const arrNode = argument.childForFieldName('argument');
-        const indexNode = argument.childForFieldName('index');
-        if (arrNode && indexNode && arrNode.type === 'identifier') {
-          const arr = this.variables[arrNode.text];
+        const arr = this.evaluateExpression(argument.childForFieldName('argument'));
+        const indicesList = argument.childForFieldName('indices');
+        const indexNode = indicesList ? indicesList.namedChildren[0] : null;
+        if (arr && indexNode && Array.isArray(arr)) {
           const index = this.evaluateExpression(indexNode);
-          if (Array.isArray(arr)) {
-            let val = arr[index] || 0;
-            if (node.text.endsWith('++') || node.text.startsWith('++')) {
-               arr[index] = val + 1;
-               this.api.setState({ variables: { ...this.variables } });
-               return node.text.endsWith('++') ? val : val + 1;
-            } else if (node.text.endsWith('--') || node.text.startsWith('--')) {
-               arr[index] = val - 1;
-               this.api.setState({ variables: { ...this.variables } });
-               return node.text.endsWith('--') ? val : val - 1;
-            }
+          let val = arr[index] || 0;
+          if (node.text.endsWith('++') || node.text.startsWith('++')) {
+             arr[index] = val + 1;
+             this.api.setState({ variables: { ...this.variables } });
+             return node.text.endsWith('++') ? val : val + 1;
+          } else if (node.text.endsWith('--') || node.text.startsWith('--')) {
+             arr[index] = val - 1;
+             this.api.setState({ variables: { ...this.variables } });
+             return node.text.endsWith('--') ? val : val - 1;
           }
         }
       }
@@ -662,6 +698,11 @@ export class CalliopeInterpreter {
       const funcName = node.childForFieldName('function')?.text;
       const argumentsNode = node.childForFieldName('arguments');
       const args = argumentsNode?.namedChildren.map(arg => this.evaluateExpression(arg)) || [];
+
+      // String constructors
+      if (funcName === 'ManagedString' || funcName === 'String' || funcName === 'string' || funcName === 'std::string') {
+        return args[0] !== undefined ? String(args[0]) : '';
+      }
 
       // Global Math Functions
       if (funcName === 'abs') return Math.abs(Number(args[0]) || 0);
